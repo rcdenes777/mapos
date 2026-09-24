@@ -218,6 +218,14 @@ footer .vendedor {
     page-break-before: always;
 }
 
+/* Imagens inseridas pelo editor de texto (descrição, defeito, observações,
+   parecer) vêm no tamanho original do arquivo e estouram a largura da folha
+   na impressão. Limita à área útil da página, mantendo a proporção. */
+.sub-page img {
+    max-width: 100%;
+    height: auto;
+}
+
 #anexos section img {
     flex: 1 0 30%;
     max-width: 150px;

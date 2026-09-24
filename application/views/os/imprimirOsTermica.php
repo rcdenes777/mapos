@@ -49,6 +49,13 @@ $totalProdutos = 0; ?>
             outline: 2cm #FFEAEA solid;
         }
 
+        /* Imagens inseridas pelo editor de texto vêm no tamanho original e
+           estouram a largura do cupom. Limita à folha, mantendo a proporção. */
+        .page img {
+            max-width: 100%;
+            height: auto;
+        }
+
         @page {
             size: auto;
             margin: 0;
