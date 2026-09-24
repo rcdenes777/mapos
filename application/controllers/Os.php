@@ -965,6 +965,42 @@ class Os extends MY_Controller
         }
     }
 
+    public function uploadImagemEditor()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')
+            && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'uploadError']);
+            exit();
+        }
+
+        $date = date('m-Y');
+        $directory = FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'os' . DIRECTORY_SEPARATOR . 'editor' . DIRECTORY_SEPARATOR . $date;
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $upload_conf = [
+            'upload_path' => $directory,
+            'allowed_types' => 'jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP',
+            'max_size' => 5120, // KB
+            'encrypt_name' => true,
+        ];
+
+        $this->load->library('upload', $upload_conf);
+
+        if (! $this->upload->do_upload('imagem')) {
+            echo json_encode(['success' => false, 'message' => 'uploadError']);
+
+            return;
+        }
+
+        $upload_data = $this->upload->data();
+        $url = base_url('assets/os/editor/' . $date . '/' . $upload_data['file_name']);
+
+        echo json_encode(['success' => true, 'file' => $url]);
+    }
+
     public function excluirAnexo($id = null)
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {

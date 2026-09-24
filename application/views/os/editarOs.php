@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/trumbowyg/ui/trumbowyg.css">
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
+<script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/plugins/upload/trumbowyg.upload.js"></script>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 
@@ -1260,9 +1261,49 @@ if (!$anotacoes) {
             dateFormat: 'dd/mm/yy'
         });
 
+        var csrfTokenName = $('meta[name="csrf-token-name"]').attr('content');
+        var csrfCookieName = $('meta[name="csrf-cookie-name"]').attr('content');
+
         $('.editor').trumbowyg({
             lang: 'pt_br',
-            semantic: { 'strikethrough': 's', }
+            semantic: { 'strikethrough': 's', },
+            btns: [
+                ['viewHTML'],
+                ['undo', 'redo'],
+                ['formatting'],
+                ['strong', 'em', 'strikethrough'],
+                ['superscript', 'subscript'],
+                ['link'],
+                ['insertImage', 'upload'],
+                ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
+                ['unorderedList', 'orderedList'],
+                ['horizontalRule'],
+                ['removeformat'],
+                ['fullscreen']
+            ],
+            plugins: {
+                upload: {
+                    serverPath: '<?php echo base_url(); ?>index.php/os/uploadImagemEditor',
+                    fileFieldName: 'imagem',
+                    urlPropertyName: 'file',
+                    statusPropertyName: 'success',
+                    data: [{ name: csrfTokenName, value: '' }]
+                }
+            }
+        });
+
+        // O token CSRF é regenerado a cada requisição, então precisa ser lido
+        // na hora do envio. O getter é instalado depois da inicialização
+        // porque o plugin copia as opções com $.extend(true, ...), que
+        // descarta getters e deixaria o campo sem valor.
+        $('.editor').each(function () {
+            var uploadOptions = $(this).data('trumbowyg').o.plugins.upload;
+            Object.defineProperty(uploadOptions.data[0], 'value', {
+                configurable: true,
+                get: function () {
+                    return getCookie(csrfCookieName);
+                }
+            });
         });
     });
 </script>
