@@ -387,13 +387,14 @@ foreach ($servicos as $s) {
                                 <div class="span12 pull-left" id="divAnexos" style="margin-left: 0">
                                     <?php
                                     foreach ($anexos as $a) {
+                                        // Sem miniatura (vídeo, PDF, docx) mostra o ícone genérico,
+                                        // mas o link precisa apontar para o arquivo real.
                                         if ($a->thumb == null) {
                                             $thumb = base_url() . 'assets/img/icon-file.png';
-                                            $link = base_url() . 'assets/img/icon-file.png';
                                         } else {
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
-                                            $link = $a->url . '/' . $a->anexo;
                                         }
+                                        $link = $a->url . '/' . $a->anexo;
                                         echo '<div class="span3" style="min-height: 150px; margin-left: 0">
                                                     <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal">
                                                         <img src="' . $thumb . '" alt="">
@@ -469,7 +470,8 @@ if (!$anotacoes) {
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
+        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download (.zip)</a>
+        <a href="" class="btn btn-success" id="download-original" download>Baixar original</a>
         <a href="" link="" class="btn btn-danger" id="excluir-anexo">Excluir Anexo</a>
     </div>
 </div>
@@ -1197,10 +1199,26 @@ if (!$anotacoes) {
             var link = $(this).attr('link');
             var id = $(this).attr('imagem');
             var url = '<?php echo base_url(); ?>index.php/os/excluirAnexo/';
-            $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
+            // Vídeo abre no player; imagem continua como imagem; os demais
+            // formatos (PDF, docx) viram um link, já que <img> não os exibe.
+            if (/\.(mp4|mov|webm)$/i.test(link)) {
+                $("#div-visualizar-anexo").html(
+                    '<video src="' + link + '" controls preload="metadata" style="max-width: 100%; max-height: 70vh;"></video>'
+                );
+            } else if (/\.(jpe?g|png|gif|webp)$/i.test(link)) {
+                $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
+            } else {
+                $("#div-visualizar-anexo").html(
+                    '<a href="' + link + '" target="_blank" rel="noopener">Abrir arquivo em nova aba</a>'
+                );
+            }
             $("#excluir-anexo").attr('link', url + id);
 
             $("#download").attr('href', "<?php echo base_url(); ?>index.php/os/downloadanexo/" + id);
+
+            // Baixa o arquivo como ele foi enviado (sem zipar), para poder
+            // reenviar direto pelo WhatsApp.
+            $("#download-original").attr('href', link);
 
         });
 

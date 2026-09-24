@@ -893,8 +893,8 @@ class Os extends MY_Controller
 
         $upload_conf = [
             'upload_path' => $directory,
-            'allowed_types' => 'jpg|png|gif|jpeg|JPG|PNG|GIF|JPEG|pdf|PDF|cdr|CDR|docx|DOCX|txt', // formatos permitidos para anexos de os
-            'max_size' => 0,
+            'allowed_types' => 'jpg|png|gif|jpeg|JPG|PNG|GIF|JPEG|pdf|PDF|cdr|CDR|docx|DOCX|txt|mp4|MP4|mov|MOV|webm|WEBM', // formatos permitidos para anexos de os
+            'max_size' => 307200, // KB (300 MB) - vídeos de comprovação de serviço
         ];
 
         $this->upload->initialize($upload_conf);
