@@ -104,6 +104,18 @@ if (! function_exists('printSafeHtml')) {
 
         if ($purifier === null) {
             $config = HTMLPurifier_Config::createDefault();
+
+            // Por padrão o HTMLPurifier grava seu cache dentro de vendor/, que
+            // não é gravável pelo PHP e faz visualizar/imprimir OS quebrar.
+            // application/cache é gravável e sobrevive a um composer install.
+            $cacheDir = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'htmlpurifier';
+
+            if (! is_dir($cacheDir)) {
+                mkdir($cacheDir, 0755, true);
+            }
+
+            $config->set('Cache.SerializerPath', $cacheDir);
+
             $purifier = new HTMLPurifier($config);
         }
 
