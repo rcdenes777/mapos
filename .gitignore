@@ -29,3 +29,14 @@ ci_sessions/
 uploads
 application/.env
 assets/userImage
+
+# Arquivos enviados pelos usuarios (fotos e videos anexados as OS).
+# Sao dados de cliente: nao devem ir para o repositorio.
+assets/anexos/*/
+assets/os/
+
+# Cache gerado em tempo de execucao
+application/cache/htmlpurifier/
+
+# Backups locais feitos durante manutencao
+*.bak
