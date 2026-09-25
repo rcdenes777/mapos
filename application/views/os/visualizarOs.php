@@ -238,14 +238,27 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                 <tbody>
                                     <th colspan="5">
                                         <?php foreach ($anexos as $a) {
-                                            if ($a->thumb == null) {
-                                                $thumb = base_url() . 'assets/img/icon-file.png';
-                                                $link = base_url() . 'assets/img/icon-file.png';
+                                            $link = $a->url . '/' . $a->anexo;
+                                            $ehVideo = (bool) preg_match('/\.(mp4|mov|webm|ogg|m4v)$/i', $a->anexo);
+
+                                            if ($ehVideo) {
+                                                // Sem thumb no banco (o upload só gera miniatura de
+                                                // imagem): o próprio <video> exibe o primeiro quadro
+                                                // com preload="metadata", sem baixar o arquivo todo
+                                                // nem exigir ffmpeg no servidor.
+                                                $miniatura = '<video src="' . $link . '#t=0.1" muted playsinline preload="metadata" style="width: 100%; height: 150px; object-fit: cover; pointer-events: none;"></video>';
                                             } else {
-                                                $thumb = $a->url . '/thumbs/' . $a->thumb;
-                                                $link = $a->url . '/' . $a->anexo;
+                                                if ($a->thumb == null) {
+                                                    $miniatura = '<img src="' . base_url() . 'assets/img/icon-file.png" alt="">';
+                                                } else {
+                                                    $miniatura = '<img src="' . $a->url . '/thumbs/' . $a->thumb . '" alt="">';
+                                                }
                                             }
-                                            echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal"><img src="' . $thumb . '" alt=""></a></div>';
+
+                                            // O link aponta sempre para o arquivo real: antes, um anexo
+                                            // sem miniatura apontava para o ícone genérico e o modal
+                                            // acabava exibindo o próprio ícone no lugar do conteúdo.
+                                            echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal">' . $miniatura . '</a></div>';
                                         } ?>
                                     </th>
                                 </tbody>
@@ -395,7 +408,23 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
             var link = $(this).attr('link');
             var id = $(this).attr('imagem');
             var url = '<?php echo base_url(); ?>index.php/os/excluirAnexo/';
-            $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
+            // Mesmo tratamento da tela de editar OS: vídeo abre no player,
+            // imagem continua como imagem e os demais formatos (PDF, docx)
+            // viram link, já que <img> não os exibe.
+            // O .modal-body do Bootstrap 2 trava em max-height: 400px, então o
+            // vídeo é limitado a 380px: um clipe vertical passava de 600px de
+            // altura e os controles de play ficavam fora da área visível.
+            if (/\.(mp4|mov|webm|ogg|m4v)(\?|#|$)/i.test(link)) {
+                $("#div-visualizar-anexo").html(
+                    '<video src="' + link + '" controls preload="metadata" style="max-width: 100%; max-height: 380px; display: block; margin: 0 auto;"></video>'
+                );
+            } else if (/\.(jpe?g|png|gif|webp|bmp)(\?|#|$)/i.test(link)) {
+                $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
+            } else {
+                $("#div-visualizar-anexo").html(
+                    '<a href="' + link + '" target="_blank" rel="noopener">Abrir arquivo em nova aba</a>'
+                );
+            }
             $("#excluir-anexo").attr('link', url + id);
             $("#download").attr('href', "<?php echo base_url(); ?>index.php/os/downloadanexo/" + id);
 

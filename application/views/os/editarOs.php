@@ -1201,11 +1201,14 @@ if (!$anotacoes) {
             var url = '<?php echo base_url(); ?>index.php/os/excluirAnexo/';
             // Vídeo abre no player; imagem continua como imagem; os demais
             // formatos (PDF, docx) viram um link, já que <img> não os exibe.
-            if (/\.(mp4|mov|webm)$/i.test(link)) {
+            // O .modal-body do Bootstrap 2 trava em max-height: 400px, então o
+            // vídeo é limitado a 380px: um clipe vertical passava de 600px de
+            // altura e os controles de play ficavam fora da área visível.
+            if (/\.(mp4|mov|webm|ogg|m4v)(\?|#|$)/i.test(link)) {
                 $("#div-visualizar-anexo").html(
-                    '<video src="' + link + '" controls preload="metadata" style="max-width: 100%; max-height: 70vh;"></video>'
+                    '<video src="' + link + '" controls preload="metadata" style="max-width: 100%; max-height: 380px; display: block; margin: 0 auto;"></video>'
                 );
-            } else if (/\.(jpe?g|png|gif|webp)$/i.test(link)) {
+            } else if (/\.(jpe?g|png|gif|webp|bmp)(\?|#|$)/i.test(link)) {
                 $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
             } else {
                 $("#div-visualizar-anexo").html(
