@@ -124,19 +124,40 @@ section .dados > div:only-child {
     min-width: 0;
 }
 
-/* Padroniza a altura das imagens vindas do editor de texto. Uma foto alta
-   deixa o bloco .dados maior que o espaço restante da folha e, como esse
+/* Galeria de fotos dos campos da OS: grade de 2 colunas (1 2 / 3 4).
+   O helper printCampoOsHtml() agrupa aqui todas as imagens do campo, já
+   separadas do texto, que fica sempre acima.
+   page-break-inside: avoid evita que uma linha da grade seja cortada ao meio
+   pela quebra de página. */
+section .dados .os-galeria {
+    display: grid;
+    grid-template-columns: repeat(2, 340px);
+    gap: 10px;
+    margin-top: 8px;
+    justify-content: start;
+    page-break-inside: avoid;
+}
+
+/* Padroniza as imagens vindas do editor de texto em uma moldura fixa. Uma foto
+   alta deixa o bloco .dados maior que o espaço restante da folha e, como esse
    bloco não pode ser partido (page-break-inside: avoid), ele pula inteiro
    para a próxima página e deixa um vão em branco.
+
+   width/height fixos (em vez de max-*) garantem que toda imagem ocupe a mesma
+   área na folha, independente da resolução original: retrato, paisagem, foto
+   grande ou pequena caem todos na mesma moldura.
+   object-fit: contain redimensiona mantendo a proporção e SEM cortar nada —
+   uma imagem de proporção diferente sobra espaço nas laterais em vez de perder
+   conteúdo, o que importa em documento técnico.
    display: block coloca a imagem em linha própria, abaixo do texto, como
    já acontece na tela de visualizar. */
 section .dados img {
     display: block;
-    margin: 6px 0;
-    max-width: 100%;
-    max-height: 250px;
-    width: auto;
-    height: auto;
+    margin: 0;
+    width: 340px;
+    height: 250px;
+    object-fit: contain;
+    object-position: left center;
 }
 
 section .dados {

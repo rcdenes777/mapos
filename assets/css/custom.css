@@ -143,3 +143,33 @@ textarea {
 .lanc-table tbody > tr > th {
     padding: 7px;
 }
+
+/* Galeria de fotos dos campos da OS: grade de 2 colunas (1 2 / 3 4).
+   O helper printCampoOsHtml() agrupa aqui todas as imagens do campo, já
+   separadas do texto, que fica sempre acima. */
+.os-galeria {
+    display: grid;
+    grid-template-columns: repeat(2, 340px);
+    gap: 10px;
+    margin-top: 8px;
+    justify-content: start;
+}
+
+/* Imagens inseridas pelo editor de texto nos campos da OS (descrição, defeito,
+   observações, parecer) vêm no tamanho original do arquivo: uma captura de tela
+   larga ocupa a linha inteira e uma foto em retrato fica desproporcionalmente
+   alta. Enquadra todas na mesma moldura, igual à impressão (imprimir.css),
+   para que a visualização mostre o mesmo resultado do PDF.
+
+   object-fit: contain mantém a proporção e não corta nada; sobra espaço nas
+   laterais quando a proporção difere. O seletor alcança apenas as imagens
+   dentro das células de conteúdo — logo do emitente, ícones e QR Code ficam
+   de fora. */
+.table-condensed td img {
+    display: block;
+    margin: 0;
+    width: 340px;
+    height: 250px;
+    object-fit: contain;
+    object-position: left center;
+}
