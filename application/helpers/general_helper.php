@@ -122,3 +122,74 @@ if (! function_exists('printSafeHtml')) {
         return $purifier->purify($html);
     }
 }
+
+if (! function_exists('printCampoOsHtml')) {
+    /**
+     * Prepara o conteúdo dos campos de texto da OS (descrição, defeito,
+     * observações, laudo) para exibição em tela e impressão.
+     *
+     * O editor de texto grava imagem e texto na ordem em que o usuário colou,
+     * então é comum o texto acabar no meio das fotos (img, img, texto, img).
+     * Aqui o conteúdo é separado: primeiro todo o texto, depois todas as
+     * imagens agrupadas em um contêiner que o CSS exibe em grade de 2 colunas.
+     *
+     * Não altera printSafeHtml() porque aquele helper também serve ao e-mail e
+     * à impressão térmica, onde grade de 2 colunas não se aplica.
+     */
+    function printCampoOsHtml(?string $html): string
+    {
+        $html = printSafeHtml((string) $html);
+
+        if (stripos($html, '<img') === false) {
+            return $html;
+        }
+
+        $doc = new DOMDocument();
+        $anterior = libxml_use_internal_errors(true);
+
+        // O prefixo XML declara o charset sem depender de <meta>, evitando que
+        // acento vire caractere quebrado na saída.
+        $carregou = $doc->loadHTML(
+            '<?xml encoding="UTF-8"?><div id="mapos-campo-os">' . $html . '</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+
+        libxml_clear_errors();
+        libxml_use_internal_errors($anterior);
+
+        // Conteúdo que o parser não entendeu volta como veio: melhor manter o
+        // layout antigo do que perder o que o técnico escreveu.
+        if ($carregou === false) {
+            return $html;
+        }
+
+        $raiz = $doc->getElementById('mapos-campo-os');
+
+        if ($raiz === null) {
+            return $html;
+        }
+
+        $imagens = [];
+
+        foreach (iterator_to_array($raiz->getElementsByTagName('img')) as $img) {
+            $imagens[] = $doc->saveHTML($img);
+            $img->parentNode->removeChild($img);
+        }
+
+        if ($imagens === []) {
+            return $html;
+        }
+
+        $texto = '';
+
+        foreach ($raiz->childNodes as $filho) {
+            $texto .= $doc->saveHTML($filho);
+        }
+
+        // Parágrafos que só continham imagens ficam vazios após a remoção.
+        $texto = preg_replace('#<p>(?:\s|&nbsp;|<br\s*/?>)*</p>#iu', '', $texto);
+
+        return trim((string) $texto)
+            . '<div class="os-galeria">' . implode('', $imagens) . '</div>';
+    }
+}

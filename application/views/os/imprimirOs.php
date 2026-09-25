@@ -100,7 +100,7 @@ $totalProdutos = 0;
                     <div class="subtitle">DESCRIÇÃO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= printSafeHtml($result->descricaoProduto) ?>
+                            <?= printCampoOsHtml($result->descricaoProduto) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -109,7 +109,7 @@ $totalProdutos = 0;
                     <div class="subtitle">DEFEITO APRESENTADO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= printSafeHtml($result->defeito) ?>
+                            <?= printCampoOsHtml($result->defeito) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -118,7 +118,7 @@ $totalProdutos = 0;
                     <div class="subtitle">OBSERVAÇÕES</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= printSafeHtml($result->observacoes) ?>
+                            <?= printCampoOsHtml($result->observacoes) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -127,7 +127,7 @@ $totalProdutos = 0;
 					<div class="subtitle">PARECER TÉCNICO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-    						<?= printSafeHtml($result->laudoTecnico) ?>
+    						<?= printCampoOsHtml($result->laudoTecnico) ?>
 						</div>
                     </div>
                 <?php endif; ?>
@@ -355,7 +355,7 @@ $totalProdutos = 0; ?>
                         <div class="subtitle">DESCRIÇÃO</div>
                         <div class="dados">
                             <div>
-                                <?= printSafeHtml($result->descricaoProduto) ?>
+                                <?= printCampoOsHtml($result->descricaoProduto) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -364,7 +364,7 @@ $totalProdutos = 0; ?>
                         <div class="subtitle">DEFEITO APRESENTADO</div>
                         <div class="dados">
                             <div>
-                                <?= printSafeHtml($result->defeito) ?>
+                                <?= printCampoOsHtml($result->defeito) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -373,7 +373,7 @@ $totalProdutos = 0; ?>
                         <div class="subtitle">OBSERVAÇÕES</div>
                         <div class="dados">
                             <div>
-                                <?= printSafeHtml($result->observacoes) ?>
+                                <?= printCampoOsHtml($result->observacoes) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -382,7 +382,7 @@ $totalProdutos = 0; ?>
                         <div class="subtitle">PARECER TÉCNICO</div>
                         <div class="dados">
                             <div>
-                                <?= printSafeHtml($result->laudoTecnico) ?>
+                                <?= printCampoOsHtml($result->laudoTecnico) ?>
                             </div>
                         </div>
                     <?php endif; ?>

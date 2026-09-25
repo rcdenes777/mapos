@@ -163,7 +163,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>DESCRIÇÃO: </b>
-                                            <?php echo printSafeHtml($result->descricaoProduto) ?>
+                                            <?php echo printCampoOsHtml($result->descricaoProduto) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -172,7 +172,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>DEFEITO APRESENTADO: </b>
-                                            <?php echo printSafeHtml($result->defeito) ?>
+                                            <?php echo printCampoOsHtml($result->defeito) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -181,7 +181,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>OBSERVAÇÕES: </b>
-                                            <?php echo printSafeHtml($result->observacoes) ?>
+                                            <?php echo printCampoOsHtml($result->observacoes) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -190,7 +190,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>LAUDO TÉCNICO: </b>
-                                            <?php echo printSafeHtml($result->laudoTecnico) ?>
+                                            <?php echo printCampoOsHtml($result->laudoTecnico) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
