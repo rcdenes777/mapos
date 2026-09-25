@@ -1041,10 +1041,29 @@ class Os extends MY_Controller
             $this->db->where('idAnexos', $id);
             $file = $this->db->get('anexos', 1)->row();
 
-            $this->load->library('zip');
-            $path = $file->path;
-            $this->zip->read_file($path . '/' . $file->anexo);
-            $this->zip->download('file' . date('d-m-Y-H.i.s') . '.zip');
+            if ($file === null) {
+                show_404();
+
+                return;
+            }
+
+            $caminho = rtrim((string) $file->path, '/\\') . DIRECTORY_SEPARATOR . $file->anexo;
+
+            // basename() impede que um nome vindo do banco escape da pasta de
+            // anexos (path traversal) ao montar o caminho lido do disco.
+            $caminho = dirname($caminho) . DIRECTORY_SEPARATOR . basename($caminho);
+
+            if (! is_file($caminho)) {
+                show_404();
+
+                return;
+            }
+
+            // Baixa no formato original (mp4, jpg, pdf). Antes todo anexo era
+            // compactado em .zip, o que obrigava o usuário a extrair um vídeo
+            // para conseguir assistir.
+            $this->load->helper('download');
+            force_download($file->anexo, file_get_contents($caminho));
         }
     }
 
