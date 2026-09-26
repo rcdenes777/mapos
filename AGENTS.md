@@ -9,7 +9,9 @@
 - Branch: `master` — remoto: `https://github.com/rcdenes777/mapos`
 - Memória do agente (ai-memory): workspace `labsoftwares`, project `MapOs`.
   Passe os dois **explícitos** em toda chamada — o cliente MCP é estático e não
-  deriva o escopo sozinho.
+  deriva o escopo sozinho. A captura automática segue o `.ai-memory.toml`, que
+  declara os dois, e só ocorre com a sessão aberta dentro do projeto; no servidor
+  existe um único escopo `labsoftwares/MapOs`.
 
 ## Subir o ambiente
 
@@ -44,8 +46,6 @@
 ## Pendências abertas
 
 - Dados do emitente não cadastrados: o cabeçalho da OS impressa sai em branco.
-- O plugin `ai-memory-lifecycle` não envia o campo `project` na captura, o que
-  divide o namespace (`mapos` vs `MapOs`). Bug conhecido, ainda não corrigido.
 
 ## Autoridade
 
