@@ -55,6 +55,77 @@ $totalProdutos = 0; ?>
             margin: 0 8px 8px 0;
         }
 
+        /* --- Ampliar imagem ao clicar (lightbox próprio, sem biblioteca) ---
+           A moldura de 340x250 corta a leitura de detalhe: em foto de defeito o
+           cliente precisa enxergar o original. Sem dependência externa de
+           propósito — a página é servida pela porta pública, cuja allowlist não
+           libera JS de terceiros, e um CDN quebraria pelo túnel. */
+        .zoom-fundo {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .88);
+            z-index: 9999;
+            overflow: auto;
+            text-align: center;
+            cursor: zoom-out;
+        }
+
+        .zoom-fundo.aberto {
+            display: block;
+        }
+
+        .zoom-fundo img {
+            /* Estado inicial: cabe inteira na tela. */
+            max-width: 96%;
+            max-height: 92vh;
+            width: auto !important;
+            height: auto !important;
+            margin: 2vh auto;
+            object-fit: initial !important;
+            cursor: zoom-in;
+            background: #fff;
+        }
+
+        /* Segundo clique: tamanho original (1:1), com rolagem se passar da tela. */
+        .zoom-fundo.real img {
+            max-width: none;
+            max-height: none;
+            cursor: zoom-out;
+        }
+
+        .zoom-fechar {
+            position: fixed;
+            top: 10px;
+            right: 18px;
+            color: #fff;
+            font-size: 34px;
+            line-height: 1;
+            text-decoration: none;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .zoom-dica {
+            position: fixed;
+            bottom: 12px;
+            left: 0;
+            width: 100%;
+            color: #ddd;
+            font-size: 13px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        /* Sinaliza que a imagem é clicável. */
+        .table-condensed td img,
+        .anexo-celula a img {
+            cursor: zoom-in;
+        }
+
         /* Celular: uma por linha — duas colunas de 250px de altura não cabem. */
         @media (max-width: 640px) {
             .anexo-grade .anexo-celula {
@@ -385,6 +456,92 @@ $totalProdutos = 0; ?>
             </div>
         </div>
     </div>
+
+    <!-- Camada de ampliação. Fica vazia até o primeiro clique. -->
+    <div class="zoom-fundo" id="zoomFundo" role="dialog" aria-label="Imagem ampliada">
+        <span class="zoom-fechar" id="zoomFechar" title="Fechar" aria-label="Fechar">&times;</span>
+        <img id="zoomImg" alt="">
+        <div class="zoom-dica" id="zoomDica"></div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var fundo = document.getElementById('zoomFundo');
+            var img = document.getElementById('zoomImg');
+            var dica = document.getElementById('zoomDica');
+            var fechar = document.getElementById('zoomFechar');
+            if (!fundo || !img) { return; }
+
+            function abrir(src) {
+                // setAttribute com a URL da própria página: nunca innerHTML,
+                // para não reintroduzir injeção pela descrição da OS.
+                img.setAttribute('src', src);
+                fundo.classList.remove('real');
+                fundo.classList.add('aberto');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function encerrar() {
+                fundo.classList.remove('aberto', 'real');
+                img.removeAttribute('src');
+                document.body.style.overflow = '';
+            }
+
+            function atualizarDica() {
+                if (!img.naturalWidth) { dica.textContent = ''; return; }
+                var real = fundo.classList.contains('real');
+                var cabe = img.naturalWidth <= window.innerWidth * 0.96 &&
+                           img.naturalHeight <= window.innerHeight * 0.92;
+                var tam = img.naturalWidth + ' x ' + img.naturalHeight + ' px';
+                if (cabe) {
+                    dica.textContent = tam + ' — tamanho original. Clique fora para fechar.';
+                } else if (real) {
+                    dica.textContent = tam + ' — tamanho original. Clique na imagem para ajustar à tela.';
+                } else {
+                    dica.textContent = tam + ' — clique na imagem para ver em tamanho original.';
+                }
+            }
+
+            img.addEventListener('load', atualizarDica);
+
+            // Clique em imagem da descrição/laudo: o src já é o arquivo cheio,
+            // só a exibição estava limitada pela moldura.
+            document.addEventListener('click', function (ev) {
+                var alvo = ev.target;
+                if (!alvo || alvo.tagName !== 'IMG') { return; }
+                if (alvo.closest('#zoomFundo')) { return; }
+
+                // Anexo: a miniatura vive dentro de um <a> que aponta para o
+                // arquivo original; usa o href, não a miniatura.
+                var link = alvo.closest('a');
+                if (link && link.getAttribute('href')) {
+                    ev.preventDefault();
+                    abrir(link.getAttribute('href'));
+                    return;
+                }
+
+                if (alvo.closest('.table-condensed')) {
+                    ev.preventDefault();
+                    abrir(alvo.getAttribute('src'));
+                }
+            });
+
+            // Alterna ajustada / tamanho original.
+            img.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                fundo.classList.toggle('real');
+                atualizarDica();
+            });
+
+            fundo.addEventListener('click', encerrar);
+            fechar.addEventListener('click', function (ev) { ev.stopPropagation(); encerrar(); });
+            document.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Escape' || ev.keyCode === 27) { encerrar(); }
+            });
+        })();
+    </script>
 </body>
 
 </html>
