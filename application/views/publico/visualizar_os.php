@@ -12,6 +12,56 @@ $totalProdutos = 0; ?>
     <link rel="stylesheet" href="/assets/css/bootstrap-responsive.min.css" />
     <link rel="stylesheet" href="/assets/css/matrix-style.css" />
     <link rel="stylesheet" href="/assets/css/matrix-media.css" />
+    <!-- custom.css traz a moldura das imagens de conteúdo (.table-condensed td img,
+         340x250 com object-fit: contain). Sem ele, uma foto de celular renderiza
+         em tamanho natural (medido: 1103px) e a página fica gigante — a interna
+         mostra 340px. Mesma moldura da impressão. -->
+    <link rel="stylesheet" href="/assets/css/custom.css" />
+    <style>
+        /* Anexos em grade de 2 colunas (pedido do dono: "2 x 2").
+           box-sizing evita que padding estoure a metade da largura; a moldura
+           fixa mantém foto em pé e foto deitada na mesma altura, igual à
+           impressão — sem isso uma foto de celular em retrato fica muito mais
+           alta que a vizinha e a linha desalinha. */
+        .anexo-grade {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .anexo-grade .anexo-celula {
+            box-sizing: border-box;
+            width: calc(50% - 7px);
+        }
+
+        .anexo-grade .anexo-celula img,
+        .anexo-grade .anexo-celula video {
+            display: block;
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            object-position: center;
+            background: #f7f7f7;
+        }
+
+        /* Imagens coladas na descrição/laudo: custom.css aplica
+           `display:block` nelas, o que empilha UMA POR LINHA dentro do <p> do
+           editor — medido 8 imagens em 8 linhas aqui contra 2 por linha na tela
+           interna, o que esticava a página em ~600px de altura à toa.
+           inline-block faz duas caberem lado a lado, como na tela interna. */
+        .table-condensed td p img {
+            display: inline-block;
+            vertical-align: top;
+            margin: 0 8px 8px 0;
+        }
+
+        /* Celular: uma por linha — duas colunas de 250px de altura não cabem. */
+        @media (max-width: 640px) {
+            .anexo-grade .anexo-celula {
+                width: 100%;
+            }
+        }
+    </style>
     <link href="/assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
 </head>
@@ -57,6 +107,59 @@ $totalProdutos = 0; ?>
                                 </table>
                             </div>
 
+                            <!-- CLIENTE e RESPONSÁVEL: existiam na tela interna e faltavam aqui.
+                                 O cliente precisa conferir se a OS é dele e saber com quem falar.
+                                 Todos os campos escapados: esta página não tem login. -->
+                            <div style="margin-top: 0; padding-top: 0">
+                                <table class="table table-condensed">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width: 60%; padding-left: 0">
+                                                <h5><b>CLIENTE</b></h5>
+                                                <span><i class="bx bxs-business"></i> <b><?php echo htmlspecialchars((string) $result->nomeCliente, ENT_QUOTES, 'UTF-8'); ?></b></span><br />
+                                                <?php
+                                                    $fones = [];
+                                                    if (! empty($result->contato_cliente)) {
+                                                        $fones[] = $result->contato_cliente;
+                                                    }
+                                                    if (! empty($result->celular_cliente) && $result->celular_cliente === $result->telefone_cliente) {
+                                                        $fones[] = $result->celular_cliente;
+                                                    } else {
+                                                        if (! empty($result->telefone_cliente)) {
+                                                            $fones[] = $result->telefone_cliente;
+                                                        }
+                                                        if (! empty($result->celular_cliente)) {
+                                                            $fones[] = $result->celular_cliente;
+                                                        }
+                                                    }
+                                                    if ($fones) { ?>
+                                                        <span><i class="bx bxs-phone"></i> <?php echo htmlspecialchars(implode(' / ', $fones), ENT_QUOTES, 'UTF-8'); ?></span><br />
+                                                <?php } ?>
+                                                <?php
+                                                    $endereco = implode(', ', array_filter([$result->rua, $result->numero, $result->complemento, $result->bairro]));
+                                                    $cidadeUf = trim(implode(', ', array_filter([$result->cep, trim(implode('/', array_filter([$result->cidade, $result->estado])), '/')])));
+                                                    if ($endereco !== '' || $cidadeUf !== '') { ?>
+                                                        <span><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars(trim($endereco . ($endereco !== '' && $cidadeUf !== '' ? ' - ' : '') . $cidadeUf), ENT_QUOTES, 'UTF-8'); ?></span><br />
+                                                <?php } ?>
+                                                <?php if (! empty($result->email)) { ?>
+                                                    <span><i class="fas fa-envelope"></i> <?php echo htmlspecialchars((string) $result->email, ENT_QUOTES, 'UTF-8'); ?></span><br />
+                                                <?php } ?>
+                                            </td>
+                                            <td style="width: 40%; padding-left: 0">
+                                                <h5><b>RESPONSÁVEL</b></h5>
+                                                <span><b><i class="fas fa-user"></i> <?php echo htmlspecialchars((string) $result->nome, ENT_QUOTES, 'UTF-8'); ?></b></span><br />
+                                                <?php if (! empty($result->telefone_usuario)) { ?>
+                                                    <span><i class="fas fa-phone"></i> <?php echo htmlspecialchars((string) $result->telefone_usuario, ENT_QUOTES, 'UTF-8'); ?></span><br />
+                                                <?php } ?>
+                                                <?php if (! empty($result->email_usuario)) { ?>
+                                                    <span><i class="fas fa-envelope"></i> <?php echo htmlspecialchars((string) $result->email_usuario, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                <?php } ?>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
                             <div style="margin-top: 0; padding-top: 0">
                                 <table class="table table-condensed">
                                     <tbody>
@@ -81,7 +184,7 @@ $totalProdutos = 0; ?>
                                                     </td>
 
                                                     <td>
-                                                        <?php if ($result->status == 'Finalizado') { ?><b> VENC. DA GARANTIA: </b><?php echo dateInterval($result->dataFinal, $result->garantia); ?><?php } ?>
+                                                        <?php if (in_array($result->status, ['Finalizado', 'Faturado', 'Orçamento', 'Aberto'], true) && ! empty($result->garantia) && ! empty($result->dataFinal)) { ?><b> VENC. DA GARANTIA: </b><?php echo dateInterval($result->dataFinal, $result->garantia); ?><?php } ?>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -146,7 +249,12 @@ $totalProdutos = 0; ?>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <th>
+                                            <tr>
+                                            <td>
+                                            <!-- Grade 2 por linha: cada célula ocupa metade da largura.
+                                                 Antes era .span3 (4 por linha), que deixava as fotos
+                                                 pequenas e desalinhadas quando havia vídeo na mesma fila. -->
+                                            <div class="anexo-grade">
                                             <?php foreach ($anexos as $a) {
                                                 // Anexos são servidos pela rota pública do controller
                                                 // Publico (que valida o token), nunca pelo caminho
@@ -168,12 +276,14 @@ $totalProdutos = 0; ?>
                                                     // Sem thumb no banco (o upload só gera miniatura de
                                                     // imagem) e sem suporte a Range nesta fase (Fase 3):
                                                     // o vídeo carrega e reproduz do início ao fim.
-                                                    echo '<div class="span3" style="min-height: 150px; margin-left: 0"><video src="' . $link . '" controls preload="metadata" style="max-width: 100%; max-height: 190px; display: block;"></video></div>';
+                                                    echo '<div class="anexo-celula"><video src="' . $link . '" controls preload="metadata"></video></div>';
                                                 } else {
-                                                    echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="' . $link . '" target="_blank"><img src="' . $thumb . '" alt=""></a></div>';
+                                                    echo '<div class="anexo-celula"><a href="' . $link . '" target="_blank"><img src="' . $thumb . '" alt=""></a></div>';
                                                 }
                                             } ?>
-                                            </th>
+                                            </div>
+                                            </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 <?php } ?>
