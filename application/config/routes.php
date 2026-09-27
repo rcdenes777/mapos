@@ -50,5 +50,9 @@ if (filter_var($_ENV['API_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
     require APPPATH . 'config/routes_api.php';
 }
 
+// Rotas da área pública (link de OS por token, sem login).
+// Sempre carregadas: não dependem de API_ENABLED.
+require APPPATH . 'config/routes_publico.php';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */
