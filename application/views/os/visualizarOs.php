@@ -37,6 +37,7 @@
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                         }
+                        echo '<a title="Gerar link público da OS (o cliente abre sem login)" class="button btn btn-mini btn-info" href="#" id="gerarLinkPublico" data-os="' . $result->idOs . '"><span class="button__icon"><i class="bx bx-link"></i></span> <span class="button__text">Gerar link público</span></a>';
                     } ?>
 
                     <a title="Enviar OS por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
@@ -516,5 +517,102 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                 text: "Não foi possível decodificar o QR Code.",
             });
         }
+    });
+    // ------------------------------------------------------------------
+    // Link público da OS (o cliente abre sem login).
+    // Mesma lógica de editarOs.php, mas esta tela carrega o sweetalert
+    // ANTIGO: aqui só existe swal(), não Swal.fire — confirmado em runtime
+    // (typeof Swal === 'undefined'). Usar Swal.fire aqui quebra o clique.
+    // ------------------------------------------------------------------
+    $(document).ready(function() {
+        // Guarda o href original do WhatsApp como modelo imutável e recompõe
+        // sempre a partir dele: o marcador nunca chega ao cliente e gerar o
+        // link duas vezes não empilha links (idempotente).
+        var $zap = $('#enviarWhatsApp');
+        var zapHrefTemplate = $zap.length ? $zap.attr('href') : '';
+
+        function montarHrefWhats(link) {
+            var MARCADOR = '%7BLINK_OS%7D';
+            var ROTULO = 'Acompanhe sua O.S.: ';
+            var pos = zapHrefTemplate.indexOf('&text=');
+
+            if (pos === -1) {
+                return zapHrefTemplate.split(MARCADOR).join('');
+            }
+
+            var prefixo = zapHrefTemplate.slice(0, pos + '&text='.length);
+            var textoBruto = zapHrefTemplate.slice(pos + '&text='.length);
+
+            // O PHP gerou o texto com urlencode(): espaço virou '+'.
+            var texto;
+            try {
+                texto = decodeURIComponent(textoBruto.split('+').join(' '));
+            } catch (e) {
+                return zapHrefTemplate.split(MARCADOR).join('');
+            }
+
+            var marcadorDecodificado = '{LINK_OS}';
+
+            if (texto.indexOf(marcadorDecodificado) !== -1) {
+                texto = texto.split(marcadorDecodificado).join(link ? link : '');
+            } else if (link) {
+                texto = texto.replace(/\s+$/, '') + '\n\n' + ROTULO + link;
+            }
+
+            return prefixo + encodeURIComponent(texto);
+        }
+
+        if ($zap.length) {
+            // Estado inicial: sem link gerado, o marcador não pode ir cru.
+            $zap.attr('href', montarHrefWhats(''));
+        }
+
+        $(document).on('click', '#gerarLinkPublico', function(event) {
+            event.preventDefault();
+
+            var osId = $(this).data('os');
+            var $btn = $(this);
+            $btn.attr('disabled', 'disabled');
+
+            $.ajax({
+                type: "GET",
+                url: "<?php echo site_url('os/gerarLinkPublico'); ?>/" + osId,
+                dataType: 'json',
+                success: function(data) {
+                    $btn.removeAttr('disabled');
+
+                    if (!data || data.result !== true) {
+                        swal({
+                            type: "error",
+                            title: "Atenção",
+                            text: (data && data.mensagem) ? data.mensagem : "Não foi possível gerar o link público."
+                        });
+                        return;
+                    }
+
+                    if ($zap.length) {
+                        $zap.attr('href', montarHrefWhats(data.link));
+                    }
+
+                    // Esta tela carrega o sweetalert 1.x, que ESCAPA HTML mesmo
+                    // com html:true (verificado em runtime: a tag <a> aparece
+                    // como texto). Por isso o link vai como texto puro — fica
+                    // visível e selecionável para copiar.
+                    swal({
+                        type: "success",
+                        title: "Link público gerado",
+                        text: data.link
+                    });
+                },
+                error: function() {
+                    $btn.removeAttr('disabled');
+                    swal({
+                        type: "error",
+                        title: "Atenção",
+                        text: "Não foi possível gerar o link público."
+                    });
+                }
+            });
+        });
     });
 </script>
