@@ -45,13 +45,19 @@
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                         $this->load->model('os_model');
                         $zapnumber = preg_replace("/[^0-9]/", "", $result->celular_cliente);
-                        $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias'];
+                        // O {LINK_OS} fica como marcador literal aqui (o token só
+                        // existe depois de "Gerar link público", logo abaixo): o
+                        // wa.me é atualizado pelo script no fim desta view assim
+                        // que o link existe, e o marcador é removido se o técnico
+                        // nunca gerar o link.
+                        $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias', '{LINK_OS}'];
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);
                         if (!empty($zapnumber)) {
                             echo '<a title="Via WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://wa.me/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '" ' . ($zapnumber == '' ? 'disabled' : '') . '>
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                         }
+                        echo '<a title="Gerar link público da OS (o cliente abre sem login)" class="button btn btn-mini btn-info" href="#" id="gerarLinkPublico" data-os="' . $result->idOs . '"><span class="button__icon"><i class="bx bx-link"></i></span> <span class="button__text">Gerar link público</span></a>';
                     } ?>
                     <a title="Enviar por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-envelope"></i></span> <span class="button__text">Via E-mail</span>
@@ -1323,6 +1329,113 @@ if (!$anotacoes) {
                 configurable: true,
                 get: function () {
                     return getCookie(csrfCookieName);
+                }
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // O link público só existe depois de gerar o token. Guardamos o href
+        // original (com o marcador, se houver) num modelo — zapHrefTemplate —
+        // e recompomos o href sempre a partir dele: o marcador nunca chega ao
+        // cliente e gerar o link duas vezes não empilha links (idempotente).
+        //
+        // O texto da mensagem vem de um template guardado no banco
+        // (configuracoes.notifica_whats), que pode ou não conter {LINK_OS}.
+        // Por isso há dois caminhos: se o marcador existir, o link entra na
+        // posição escolhida pelo usuário; se não existir, é anexado ao fim.
+        var $zap = $('#enviarWhatsApp');
+        var zapHrefTemplate = $zap.length ? $zap.attr('href') : '';
+
+        // Recompõe o href do WhatsApp a partir do modelo imutável.
+        // link vazio/nulo = estado inicial (sem link gerado).
+        function montarHrefWhats(link) {
+            var MARCADOR = '%7BLINK_OS%7D';
+            var ROTULO = 'Acompanhe sua O.S.: ';
+            var pos = zapHrefTemplate.indexOf('&text=');
+
+            // Sem o parâmetro text não há mensagem para alterar; devolve o
+            // modelo apenas limpando o marcador, se ele existir.
+            if (pos === -1) {
+                return zapHrefTemplate.split(MARCADOR).join('');
+            }
+
+            var prefixo = zapHrefTemplate.slice(0, pos + '&text='.length);
+            var textoBruto = zapHrefTemplate.slice(pos + '&text='.length);
+
+            // O PHP gerou o texto com urlencode(): espaço virou '+'.
+            var texto;
+            try {
+                texto = decodeURIComponent(textoBruto.split('+').join(' '));
+            } catch (e) {
+                // Texto com sequência inválida: não arrisca corromper a
+                // mensagem, apenas remove o marcador do href cru.
+                return zapHrefTemplate.split(MARCADOR).join('');
+            }
+
+            var marcadorDecodificado = '{LINK_OS}';
+
+            if (texto.indexOf(marcadorDecodificado) !== -1) {
+                // Caso 2: o usuário escolheu a posição do link no template.
+                texto = texto.split(marcadorDecodificado).join(link ? link : '');
+            } else if (link) {
+                // Caso 1: template sem marcador — anexa ao fim da mensagem.
+                texto = texto.replace(/\s+$/, '') + '\n\n' + ROTULO + link;
+            }
+
+            return prefixo + encodeURIComponent(texto);
+        }
+
+        if ($zap.length) {
+            // Estado inicial: sem link gerado, o marcador não pode ir cru.
+            $zap.attr('href', montarHrefWhats(''));
+        }
+
+        $(document).on('click', '#gerarLinkPublico', function(event) {
+            event.preventDefault();
+
+            var osId = $(this).data('os');
+            var $btn = $(this);
+            $btn.attr('disabled', 'disabled');
+
+            $.ajax({
+                type: "GET",
+                url: "<?php echo site_url('os/gerarLinkPublico'); ?>/" + osId,
+                dataType: 'json',
+                success: function(data) {
+                    $btn.removeAttr('disabled');
+
+                    if (!data || data.result !== true) {
+                        Swal.fire({
+                            type: "error",
+                            title: "Atenção",
+                            text: (data && data.mensagem) ? data.mensagem : "Não foi possível gerar o link público."
+                        });
+                        return;
+                    }
+
+                    // Injeta o link na mensagem do WhatsApp, sempre recompondo
+                    // a partir do modelo: idempotente (gerar N vezes não
+                    // empilha) e sem sobra de marcador.
+                    if ($zap.length) {
+                        $zap.attr('href', montarHrefWhats(data.link));
+                    }
+
+                    Swal.fire({
+                        type: "success",
+                        title: "Link público gerado",
+                        html: '<a href="' + data.link + '" target="_blank" rel="noopener">' + data.link + '</a>'
+                    });
+                },
+                error: function() {
+                    $btn.removeAttr('disabled');
+                    Swal.fire({
+                        type: "error",
+                        title: "Atenção",
+                        text: "Não foi possível gerar o link público."
+                    });
                 }
             });
         });

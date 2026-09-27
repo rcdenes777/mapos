@@ -284,6 +284,21 @@ class Os_model extends CI_Model
         return $this->db->get('anexos')->result();
     }
 
+    /**
+     * Busca um anexo filtrando por os_id, não só pelo ID do anexo.
+     *
+     * É o que garante o isolamento entre OSs no link público: o token de uma
+     * OS não consegue ler o anexo de outra trocando o número na URL (IDOR).
+     */
+    public function getAnexoDaOs($osId, $anexoId)
+    {
+        $this->db->where('os_id', $osId);
+        $this->db->where('idAnexos', $anexoId);
+        $this->db->limit(1);
+
+        return $this->db->get('anexos')->row();
+    }
+
     public function getAnotacoes($os)
     {
         $this->db->where('os_id', $os);
@@ -303,7 +318,7 @@ class Os_model extends CI_Model
 
     public function criarTextoWhats($textoBase, $troca)
     {
-        $procura = ['{CLIENTE_NOME}', '{NUMERO_OS}', '{STATUS_OS}', '{VALOR_OS}', '{DESCRI_PRODUTOS}', '{EMITENTE}', '{TELEFONE_EMITENTE}', '{OBS_OS}', '{DEFEITO_OS}', '{LAUDO_OS}', '{DATA_FINAL}', '{DATA_INICIAL}', '{DATA_GARANTIA}'];
+        $procura = ['{CLIENTE_NOME}', '{NUMERO_OS}', '{STATUS_OS}', '{VALOR_OS}', '{DESCRI_PRODUTOS}', '{EMITENTE}', '{TELEFONE_EMITENTE}', '{OBS_OS}', '{DEFEITO_OS}', '{LAUDO_OS}', '{DATA_FINAL}', '{DATA_INICIAL}', '{DATA_GARANTIA}', '{LINK_OS}'];
         $textoBase = str_replace($procura, $troca, $textoBase);
         $textoBase = strip_tags($textoBase);
         $textoBase = htmlentities(urlencode($textoBase));

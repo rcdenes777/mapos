@@ -859,6 +859,46 @@ class Os extends MY_Controller
         }
     }
 
+    /**
+     * Gera um novo token de acesso público para a OS (link reutilizável,
+     * válido por 190 dias) e devolve a URL pronta em JSON.
+     *
+     * Gerado sob demanda (botão na tela da OS), nunca automaticamente a cada
+     * carregamento — senão cada abertura da tela criaria uma linha nova na
+     * tabela os_tokens_publicos.
+     */
+    public function gerarLinkPublico($id = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['result' => false, 'mensagem' => 'Você não tem permissão para gerar o link público desta O.S.']);
+
+            return;
+        }
+
+        if (! $id || ! is_numeric($id) || ! $this->os_model->getById($id)) {
+            echo json_encode(['result' => false, 'mensagem' => 'Ordem de serviço inválida.']);
+
+            return;
+        }
+
+        $this->load->model('OsTokenPublico_model');
+
+        $token = $this->OsTokenPublico_model->gerar((int) $id);
+
+        if ($token === null) {
+            echo json_encode(['result' => false, 'mensagem' => 'Não foi possível gerar o link público.']);
+
+            return;
+        }
+
+        log_info('Gerou link público de OS. ID (OS): ' . $id);
+
+        // base_url() não injeta $config['index_page'], então o link sai limpo
+        // (http://host/publico/os/<token>) e casa com a regra de ingress do
+        // Cloudflare Tunnel, que libera apenas /publico/*.
+        echo json_encode(['result' => true, 'link' => base_url('publico/os/' . $token)]);
+    }
+
     public function anexar()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
