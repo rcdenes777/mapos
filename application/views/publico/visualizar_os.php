@@ -44,17 +44,6 @@ $totalProdutos = 0; ?>
             background: #f7f7f7;
         }
 
-        /* Imagens coladas na descrição/laudo: custom.css aplica
-           `display:block` nelas, o que empilha UMA POR LINHA dentro do <p> do
-           editor — medido 8 imagens em 8 linhas aqui contra 2 por linha na tela
-           interna, o que esticava a página em ~600px de altura à toa.
-           inline-block faz duas caberem lado a lado, como na tela interna. */
-        .table-condensed td p img {
-            display: inline-block;
-            vertical-align: top;
-            margin: 0 8px 8px 0;
-        }
-
         /* --- Ampliar imagem ao clicar (lightbox próprio, sem biblioteca) ---
            A moldura de 340x250 corta a leitura de detalhe: em foto de defeito o
            cliente precisa enxergar o original. Sem dependência externa de
@@ -267,8 +256,8 @@ $totalProdutos = 0; ?>
                                             <?php if ($result->descricaoProduto != null) { ?>
                                                 <tr>
                                                     <td>
-                                                        <strong>DESCRIÇÃO: </strong><br>
-                                                        <?php echo printSafeHtml($result->descricaoProduto) ?>
+                                                        <strong>DESCRIÇÃO: </strong>
+                                                        <?php echo printCampoOsHtml($result->descricaoProduto) ?>
                                                     </td>
                                                 </tr>
 
@@ -277,8 +266,8 @@ $totalProdutos = 0; ?>
                                             <?php if ($result->defeito != null) { ?>
                                                 <tr>
                                                     <td>
-                                                        <strong>DEFEITO APRESENTADO: </strong><br>
-                                                        <?php echo printSafeHtml($result->defeito) ?>
+                                                        <strong>DEFEITO APRESENTADO: </strong>
+                                                        <?php echo printCampoOsHtml($result->defeito) ?>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -286,8 +275,8 @@ $totalProdutos = 0; ?>
                                             <?php if ($result->observacoes != null) { ?>
                                                 <tr>
                                                     <td>
-                                                        <strong>OBSERVAÇÕES: </strong><br>
-                                                        <?php echo printSafeHtml($result->observacoes) ?>
+                                                        <strong>OBSERVAÇÕES: </strong>
+                                                        <?php echo printCampoOsHtml($result->observacoes) ?>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -295,8 +284,8 @@ $totalProdutos = 0; ?>
                                             <?php if ($result->laudoTecnico != null) { ?>
                                                 <tr>
                                                     <td>
-                                                        <strong>LAUDO TÉCNICO: </strong><br>
-                                                        <?php echo printSafeHtml($result->laudoTecnico) ?>
+                                                        <strong>LAUDO TÉCNICO: </strong>
+                                                        <?php echo printCampoOsHtml($result->laudoTecnico) ?>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
