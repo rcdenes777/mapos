@@ -13,11 +13,25 @@
   declara os dois, e só ocorre com a sessão aberta dentro do projeto; no servidor
   existe um único escopo `labsoftwares/MapOs`.
 
+## Estado atual (27/09/2026)
+
+- **10 commits locais em `master`, NÃO publicados** (base `c46e2ac`). Fase 1 do
+  link público de OS por token: pronta, revisada por 3 modelos, verificada em
+  runtime. Árvore limpa. Detalhe na memória:
+  `decisions/fase1-link-publico-os-implementada.md`.
+- nginx tem **duas portas**: 8000 interna (uso diário) e **8010 pública**
+  (allowlist, só `/publico/*`, escuta em 127.0.0.1) — é a 8010 que o túnel
+  exporá. Nada exposto à internet ainda.
+- Antes de qualquer `push`: `docker/.env` é **rastreado e contém as senhas do
+  banco** (anterior à Fase 1, repositório público). Dono decidiu tratar só
+  quando estiver 100% pronto.
+
 ## Subir o ambiente
 
     cd docker && docker compose up -d --build
 
 - App: http://localhost:8000 (nginx + php-fpm) · phpMyAdmin: :8080 · MySQL: :8989
+- Porta pública (allowlist): http://127.0.0.1:8010 — só `/publico/*` responde.
 - `docker compose` existe **no host**, não dentro do container do agente.
 - Credenciais de app e banco: consultar a página `notes/ambiente-docker.md` na
   memória. **Não versionar credenciais aqui** — este repositório é público.
@@ -26,6 +40,9 @@
 
 - Não há suíte de testes no projeto. O gate é: `php -l` em cada PHP alterado
   + smoke HTTP na rota afetada. Para impressão, conferir a página gerada.
+- Mudança que afeta a área pública: exercitar **as duas portas** (8000 e 8010) e
+  requisitar a URL que a **página emite**, não a que você digitou — foi assim que
+  um 404 pelo túnel passou por duas revisões.
 - Composer usa `"vendor-dir": "application/vendor"` — as dependências **não**
   ficam em `vendor/`.
 
@@ -41,11 +58,24 @@
 - POST de login responde **403** sem o campo `MAPOS_CSRF_TOKEN`.
 - Anexos que não são imagem não têm miniatura no banco — o vídeo usa a própria
   tag `<video preload="metadata">`; o host **não tem ffmpeg**.
+- `editarOs.php` e `visualizarOs.php` carregam **sweetalert diferentes**:
+  a primeira tem `Swal.fire`, a segunda só `swal()` (`Swal` é `undefined`).
+  Copiar JS entre as duas faz o clique falhar **sem erro visível**.
+- `assets/css/custom.css` é **compartilhado** entre painel e página pública:
+  mudar a moldura `.table-condensed td img` (340×250) altera as duas telas.
+- Estáticos vêm com `expires max`: ao conferir mudança de CSS/JS é preciso
+  **Ctrl+F5**, senão o navegador serve a versão antiga.
 - `.ai-memory.toml` é intencionalmente não rastreado (está em `.git/info/exclude`).
 
 ## Pendências abertas
 
-- Dados do emitente não cadastrados: o cabeçalho da OS impressa sai em branco.
+- Dados do emitente não cadastrados: o cabeçalho da OS impressa sai em branco e
+  a mensagem de WhatsApp termina em "Atenciosamente, .".
+- `cloudflared` não instalado, túnel não criado — exige o Humano (serviço
+  permanente + autenticação na conta Cloudflare).
+- Sem flag "publicar anexo": **todo** anexo da OS vai ao cliente pelo link,
+  inclusive PDF/DOCX interno. Decisão do dono pendente.
+- Vídeo na página pública não tem `Range`/seek (Fase 3).
 
 ## Autoridade
 
