@@ -21,7 +21,34 @@ class WhoopsHook
         if (php_sapi_name() === 'cli') {
             $handler = new PlainTextHandler();
         } else {
-            $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+            // Normalização deliberada, na mesma ordem que o CodeIgniter usa ao
+            // rotear. `parse_url('//publico/os/x', PHP_URL_PATH)` devolve
+            // '/os/x' — a forma '//' é lida como URL relativa a protocolo, com
+            // 'publico' virando HOST. O nginx colapsa as barras e serve a
+            // página, o CI roteia para o controller Publico, mas a checagem
+            // ingênua não casava e o Whoops era registrado na rota anônima.
+            // Prefixar um host fictício e colapsar barras repetidas remove as
+            // duas divergências.
+            $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+            $path = parse_url('http://dummy' . '/' . ltrim($uri, '/'), PHP_URL_PATH);
+            $path = preg_replace('#/{2,}#', '/', (string) $path);
+
+            // A área pública é a única rota anônima do sistema e fica exposta à
+            // internet pelo Cloudflare Tunnel. PrettyPageHandler publica stack
+            // trace, trecho de código-fonte, caminhos absolutos e variáveis de
+            // ambiente — inaceitável sem autenticação. Aqui o Whoops não é
+            // registrado: o CodeIgniter cai na própria página de erro genérica.
+            //
+            // A detecção ignora o prefixo opcional /index.php (o front
+            // controller aceita /publico/... e /index.php/publico/...), porque
+            // casar apenas o início do caminho deixaria a segunda forma
+            // servindo página de debug.
+            $rota = preg_replace('#^/index\.php#', '', $path);
+            $rota = '/' . ltrim((string) $rota, '/');
+
+            if (strpos($rota, '/publico/') === 0 || $rota === '/publico') {
+                return;
+            }
 
             $handler = str_contains($path, '/api')
                 ? new JsonResponseHandler()

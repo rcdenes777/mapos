@@ -55,7 +55,27 @@ $autoload['packages'] = [];
 |	$autoload['libraries'] = array('database', 'session', 'xmlrpc');
 */
 
-$autoload['libraries'] = ['database', 'session', 'permission'];
+// A área pública (/publico/*) é a única rota anônima e fica exposta à internet
+// pelo túnel. Com `session` autoloaded, CADA acesso de visitante — página,
+// miniatura, anexo e varredura de bot — insere/atualiza linha em `ci_sessions`
+// (driver `database`) e devolve o cookie de sessão do painel a quem nunca fez
+// login: tabela crescendo sem limite na rota mais exposta, e cookie de sessão
+// administrativa entregue a anônimo. O controller Publico não usa sessão.
+//
+// Este arquivo é PHP executado antes do bootstrap, então a decisão é tomada
+// sobre REQUEST_URI, normalizado do mesmo jeito que o hook do Whoops (a forma
+// `//publico/...` faz parse_url ler 'publico' como host).
+$mapos_uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+$mapos_path = parse_url('http://dummy' . '/' . ltrim($mapos_uri, '/'), PHP_URL_PATH);
+$mapos_path = preg_replace('#/{2,}#', '/', (string) $mapos_path);
+$mapos_rota = '/' . ltrim((string) preg_replace('#^/index\.php#', '', $mapos_path), '/');
+$mapos_ehPublico = strpos($mapos_rota, '/publico/') === 0 || $mapos_rota === '/publico';
+
+$autoload['libraries'] = $mapos_ehPublico
+    ? ['database']
+    : ['database', 'session', 'permission'];
+
+unset($mapos_uri, $mapos_path, $mapos_rota, $mapos_ehPublico);
 
 /*
 | -------------------------------------------------------------------
