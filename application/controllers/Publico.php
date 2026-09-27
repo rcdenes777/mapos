@@ -75,7 +75,86 @@ class Publico extends CI_Controller
             ? '/publico/logo/' . rawurlencode($token)
             : '';
 
+        // Imagens coladas nos campos de texto (descrição, defeito, observações,
+        // laudo) são gravadas em assets/os/editor/ e o editor guarda URL
+        // ABSOLUTA da origem interna. Pela porta pública isso falha duas vezes,
+        // igual ao logo: a origem não existe para o cliente do túnel e
+        // /assets/os/ é negado. Reescrevemos essas URLs para a rota
+        // /publico/imagem/<token>/<arquivo>, que valida o token e só serve
+        // imagem que realmente aparece nos textos DESTA OS.
+        foreach (['descricaoProduto', 'defeito', 'observacoes', 'laudoTecnico'] as $campo) {
+            if (! empty($data['result']->{$campo})) {
+                $data['result']->{$campo} = $this->reescreverImagensEditor(
+                    $data['result']->{$campo},
+                    $token
+                );
+            }
+        }
+
         $this->load->view('publico/visualizar_os', $data);
+    }
+
+    /**
+     * Troca as URLs de assets/os/editor/ pelo caminho da rota pública.
+     *
+     * Só mexe no atributo src de <img>; qualquer outro conteúdo do texto passa
+     * intacto para o escape da view.
+     */
+    private function reescreverImagensEditor($html, $token)
+    {
+        return preg_replace_callback(
+            '#(<img\b[^>]*?\bsrc\s*=\s*["\'])([^"\']*assets/os/editor/[^"\']+)(["\'])#i',
+            function ($m) use ($token) {
+                $relativo = $this->caminhoRelativoEditor($m[2]);
+
+                if ($relativo === null) {
+                    return $m[0];
+                }
+
+                $partes = array_map('rawurlencode', explode('/', $relativo));
+
+                return $m[1] . '/publico/imagem/' . rawurlencode($token) . '/'
+                    . implode('/', $partes) . $m[3];
+            },
+            $html
+        );
+    }
+
+    /**
+     * Extrai o trecho depois de assets/os/editor/ de uma URL do editor.
+     *
+     * Devolve null quando o caminho tem `..`, barra dupla ou segmento vazio —
+     * nada disso aparece em URL gerada pelo upload e indicaria manipulação.
+     */
+    private function caminhoRelativoEditor($url)
+    {
+        $url = html_entity_decode((string) $url, ENT_QUOTES, 'UTF-8');
+        $caminho = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($caminho) || $caminho === '') {
+            return null;
+        }
+
+        $caminho = rawurldecode($caminho);
+        $pos = stripos($caminho, 'assets/os/editor/');
+
+        if ($pos === false) {
+            return null;
+        }
+
+        $relativo = trim(substr($caminho, $pos + strlen('assets/os/editor/')), '/');
+
+        if ($relativo === '') {
+            return null;
+        }
+
+        foreach (explode('/', $relativo) as $segmento) {
+            if ($segmento === '' || $segmento === '.' || $segmento === '..') {
+                return null;
+            }
+        }
+
+        return $relativo;
     }
 
     /**
@@ -136,6 +215,97 @@ class Publico extends CI_Controller
 
         // Mesmo padrão de anexo()/thumb(): header() direto porque a entrega
         // libera a resposta na hora e os headers do CI Output chegariam tarde.
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($caminho));
+        header('Content-Disposition: inline; filename="' . basename($caminho) . '"');
+        header('X-Content-Type-Options: nosniff');
+
+        $this->entregarArquivo($caminho);
+    }
+
+    /**
+     * Serve uma imagem colada nos campos de texto da OS dona do token.
+     *
+     * A pasta assets/os/editor/ é compartilhada por TODAS as OS, então validar
+     * só o token deixaria o cliente A ver a imagem da OS do cliente B bastando
+     * adivinhar o nome do arquivo. Por isso o caminho pedido precisa aparecer
+     * nos textos DESTA OS: é a mesma regra do anexo, que filtra por os_id.
+     */
+    public function imagem($token = null)
+    {
+        $osId = $this->OsTokenPublico_model->resolverOsId($token);
+
+        if ($osId === null) {
+            show_404();
+
+            return;
+        }
+
+        // O nome do arquivo tem barras (mes-ano/arquivo.png) e chega partido em
+        // vários segmentos de URL; o CI entrega do 2º parâmetro em diante.
+        $segmentos = array_slice($this->uri->rsegment_array(), 3);
+        $relativo = $this->caminhoRelativoEditor('assets/os/editor/' . implode('/', $segmentos));
+
+        if ($relativo === null) {
+            show_404();
+
+            return;
+        }
+
+        $os = $this->os_model->getById($osId);
+
+        if (! $os) {
+            show_404();
+
+            return;
+        }
+
+        // Vínculo com a OS: a imagem tem de estar referenciada em um dos campos
+        // de texto desta OS. Comparação sobre o caminho normalizado, não sobre
+        // a URL crua, para não depender da origem gravada pelo editor.
+        $referenciada = false;
+
+        foreach (['descricaoProduto', 'defeito', 'observacoes', 'laudoTecnico'] as $campo) {
+            if (empty($os->{$campo})) {
+                continue;
+            }
+
+            if (preg_match_all('#assets/os/editor/[^"\'\s>]+#i', (string) $os->{$campo}, $achados)) {
+                foreach ($achados[0] as $url) {
+                    if ($this->caminhoRelativoEditor($url) === $relativo) {
+                        $referenciada = true;
+
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        if (! $referenciada) {
+            show_404();
+
+            return;
+        }
+
+        $base = realpath(FCPATH . 'assets/os/editor');
+        $caminho = realpath(FCPATH . 'assets/os/editor/' . $relativo);
+
+        if ($base === false || $caminho === false
+            || strpos($caminho, $base . DIRECTORY_SEPARATOR) !== 0
+            || ! is_file($caminho)) {
+            show_404();
+
+            return;
+        }
+
+        $mime = @mime_content_type($caminho);
+
+        if (! is_string($mime) || strpos($mime, 'image/') !== 0) {
+            show_404();
+
+            return;
+        }
+
         header('Content-Type: ' . $mime);
         header('Content-Length: ' . filesize($caminho));
         header('Content-Disposition: inline; filename="' . basename($caminho) . '"');
