@@ -192,8 +192,8 @@
                         echo '<td>' . $r->idOs . '</td>';
                         echo '<td>' . $dataInicial . '</td>';
                         echo '<td>' . $dataFinal . '</td>';
-                        echo '<td>' . printSafeHtml($r->descricaoProduto) . '</td>';
-                        echo '<td>' . printSafeHtml($r->defeito) . '</td>';
+                        echo '<td>' . printSafeHtml((string) $r->descricaoProduto) . '</td>';
+                        echo '<td>' . printSafeHtml((string) $r->defeito) . '</td>';
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
