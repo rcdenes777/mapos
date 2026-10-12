@@ -150,11 +150,10 @@ class Mine extends CI_Controller
             $this->session->set_flashdata('success', 'Solicitação realizada com sucesso! <br> Um e-mail com as instruções será enviado para ' . html_escape($emailSolicitado));
             redirect(base_url() . 'index.php/mine');
         } else {
-            $this->load->helper('string');
             $this->load->model('resetSenhas_model', '', true);
             $data = [
                 'email' => $cliente->email,
-                'token' => random_string('alnum', 32),
+                'token' => bin2hex(random_bytes(16)),
                 'data_expiracao' => date('Y-m-d H:i:s'),
             ];
             if ($this->resetSenhas_model->add('resets_de_senha', $data) == true) {
@@ -1113,15 +1112,33 @@ class Mine extends CI_Controller
     {
         header('Content-type: image/jpeg');
 
-        $arrFont = ['font-ZXX_Noise.otf', 'font-karabine.ttf', 'font-capture.ttf', 'font-captcha.ttf'];
+        $arrFont = [
+            'font-ZXX_Noise.otf',
+            'font-karabine.ttf',
+            'font-capture.ttf',
+            'font-captcha.ttf'
+        ];
+
         shuffle($arrFont);
 
         $codigoCaptcha = substr(bin2hex(random_bytes(4)), 0, 7);
-        $img = imagecreatefromjpeg('./assets/img/captcha_bg.jpg');
-        $corCaptcha = imagecolorallocate($img, 255, 0, 0);
-        $font = './assets/font-awesome/' . $arrFont[0];
 
-        imagettftext($img, 23, 0, 5, rand(30, 35), $corCaptcha, $font, $codigoCaptcha);
+        $img = imagecreatefromjpeg(FCPATH . 'assets/img/captcha_bg.jpg');
+        $corCaptcha = imagecolorallocate($img, 255, 0, 0);
+
+        $font = FCPATH . 'assets/font-awesome/' . $arrFont[0];
+
+        imagettftext(
+            $img,
+            23,
+            0,
+            5,
+            rand(30, 35),
+            $corCaptcha,
+            $font,
+            $codigoCaptcha
+        );
+
         imagepng($img);
         imagedestroy($img);
 
