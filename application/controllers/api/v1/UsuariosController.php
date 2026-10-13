@@ -120,35 +120,40 @@ class UsuariosController extends REST_Controller
     {
         $this->logged_user();
 
-        if (! $id) {
+        if ((! is_int($id) && ! is_string($id)) || ! preg_match('/^[1-9][0-9]*$/D', (string) $id)) {
             $this->response([
                 'status' => false,
                 'message' => 'Informe o ID do Usuário!',
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        if ($this->logged_user()->usuario->idUsuarios != $id) {
-            if (! $this->permission->checkPermission($this->logged_user()->level, 'cUsuario')) {
+        $canEditUsers = $this->permission->checkPermission($this->logged_user()->level, 'cUsuario');
+        if (! $canEditUsers) {
+            $payload = (array) $this->put();
+            if ((string) $this->logged_user()->usuario->idUsuarios !== (string) $id ||
+                array_key_exists('permissoes_id', $payload) ||
+                array_key_exists('situacao', $payload) ||
+                array_key_exists('dataExpiracao', $payload)
+            ) {
                 $this->response([
                     'status' => false,
                     'message' => 'Você não está autorizado a Editar Usuários!',
-                ], REST_Controller::HTTP_UNAUTHORIZED);
+                ], REST_Controller::HTTP_FORBIDDEN);
             }
         }
 
-        if (! $this->put(['nome'], true) ||
-            ! $this->put(['rg'], true) ||
-            ! $this->put(['cpf'], true) ||
-            ! $this->put(['cep'], true) ||
-            ! $this->put(['rua'], true) ||
-            ! $this->put(['numero'], true) ||
-            ! $this->put(['bairro'], true) ||
-            ! $this->put(['cidade'], true) ||
-            ! $this->put(['estado'], true) ||
-            ! $this->put(['email'], true) ||
-            ! $this->put(['telefone'], true) ||
-            ! $this->put(['situacao'], true) ||
-            ! $this->put(['permissoes_id'], true)
+        if (! $this->put('nome', true) ||
+            ! $this->put('rg', true) ||
+            ! $this->put('cpf', true) ||
+            ! $this->put('cep', true) ||
+            ! $this->put('rua', true) ||
+            ! $this->put('numero', true) ||
+            ! $this->put('bairro', true) ||
+            ! $this->put('cidade', true) ||
+            ! $this->put('estado', true) ||
+            ! $this->put('email', true) ||
+            ! $this->put('telefone', true) ||
+            ($canEditUsers && (! $this->put('situacao', true) || ! $this->put('permissoes_id', true)))
         ) {
             $this->response([
                 'status' => false,
@@ -156,7 +161,7 @@ class UsuariosController extends REST_Controller
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        if ($id == 1 && $this->put('situacao', true) == 0) {
+        if ($canEditUsers && $id == 1 && $this->put('situacao', true) == 0) {
             $this->response([
                 'status' => false,
                 'message' => 'error', 'O usuário super admin não pode ser desativado!',
@@ -176,13 +181,26 @@ class UsuariosController extends REST_Controller
             'email' => $this->put('email', true),
             'telefone' => $this->put('telefone', true),
             'celular' => $this->put('celular', true),
-            'dataExpiracao' => $this->put('dataExpiracao', true),
-            'situacao' => $this->put('situacao', true),
-            'permissoes_id' => $this->put('permissoes_id', true),
         ];
 
-        if ($this->put('senha', true)) {
-            $data['senha'] = $this->put('senha', true);
+        if ($canEditUsers) {
+            $data['dataExpiracao'] = $this->put('dataExpiracao', true);
+            $data['situacao'] = $this->put('situacao', true);
+            $data['permissoes_id'] = $this->put('permissoes_id', true);
+        }
+
+        $payload = (array) $this->put();
+        if (array_key_exists('senha', $payload)) {
+            if (! is_string($payload['senha'])) {
+                $this->response([
+                    'status' => false,
+                    'message' => 'Senha inválida!',
+                ], REST_Controller::HTTP_BAD_REQUEST);
+            }
+            $senha = $this->put('senha', true);
+            if ($senha !== '') {
+                $data['senha'] = password_hash($senha, PASSWORD_DEFAULT);
+            }
         }
 
         if ($this->usuarios_model->edit('usuarios', $data, 'idUsuarios', $id)) {

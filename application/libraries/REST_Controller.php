@@ -889,6 +889,15 @@ abstract class REST_Controller extends CI_Controller
 
             // Otherwise dump the output automatically
         } else {
+            if ($http_code !== null) {
+                $http_code = (int) $http_code;
+            }
+            if ($data === null && $http_code === null) {
+                $http_code = self::HTTP_NOT_FOUND;
+            }
+            $http_code > 0 || $http_code = self::HTTP_OK;
+            $this->output->set_status_header($http_code);
+
             echo json_encode($data);
 
             // Sem este exit, com o profiling ligado a execução seguiria após
@@ -1148,6 +1157,11 @@ abstract class REST_Controller extends CI_Controller
      */
     protected function _log_request($authorized = false)
     {
+        $log_args = $this->_args;
+        if (array_key_exists('senha', $log_args)) {
+            $log_args['senha'] = '[REDACTED]';
+        }
+
         // Insert the request into the log table
         $is_inserted = $this->rest->db
             ->insert(
@@ -1155,7 +1169,7 @@ abstract class REST_Controller extends CI_Controller
                 [
                     'uri' => $this->uri->uri_string(),
                     'method' => $this->request->method,
-                    'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === true ? json_encode($this->_args) : serialize($this->_args)) : null,
+                    'params' => $log_args ? ($this->config->item('rest_logs_json_params') === true ? json_encode($log_args) : serialize($log_args)) : null,
                     'api_key' => isset($this->rest->key) ? $this->rest->key : '',
                     'ip_address' => $this->input->ip_address(),
                     'time' => time(),
