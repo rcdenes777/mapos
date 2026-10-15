@@ -33,6 +33,7 @@ class Os extends MY_Controller
 
         $pesquisa = $this->input->get('pesquisa');
         $status = $this->input->get('status');
+        if ($status === 'Faturado') { $status = 'Finalizado'; }
         $inputDe = $this->input->get('data');
         $inputAte = $this->input->get('data2');
 

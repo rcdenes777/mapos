@@ -483,7 +483,7 @@ class Mapos extends MY_Controller
                 'control_edit_vendas' => $this->input->post('control_edit_vendas'),
                 'control_datatable' => $this->input->post('control_datatable'),
                 'pix_key' => $this->input->post('pix_key'),
-                'os_status_list' => json_encode($this->input->post('os_status_list')),
+                'os_status_list' => json_encode(array_values(array_unique(array_map(static function ($status) { return $status === 'Faturado' ? 'Finalizado' : $status; }, (array) $this->input->post('os_status_list'))))),
                 'control_2vias' => $this->input->post('control_2vias'),
             ];
             if ($this->mapos_model->saveConfiguracao($data) == true) {

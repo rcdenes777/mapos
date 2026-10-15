@@ -135,6 +135,10 @@ class Os_model extends CI_Model
 
     public function add($table, $data, $returnId = false)
     {
+        if ($table === 'os' && strcasecmp((string) ($data['status'] ?? ''), 'Faturado') === 0) {
+            $data['status'] = 'Finalizado';
+        }
+
         $this->db->insert($table, $data);
         if ($this->db->affected_rows() == '1') {
             if ($returnId == true) {
@@ -149,6 +153,10 @@ class Os_model extends CI_Model
 
     public function edit($table, $data, $fieldID, $ID)
     {
+        if ($table === 'os' && strcasecmp((string) ($data['status'] ?? ''), 'Faturado') === 0) {
+            $data['status'] = 'Finalizado';
+        }
+
         if ($table === 'os' && $this->db->get_where('os_financeiro', ['os_id' => (int) $ID])->num_rows()) {
             $atual = $this->db->get_where('os', ['idOs' => (int) $ID])->row();
             if (strtolower($data['status'] ?? '') === 'cancelado'
