@@ -1,4 +1,6 @@
 <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
+<p><a class="btn btn-info" href="<?= site_url('recebimentos/os/' . (int) $result->idOs) ?>">Recebimentos</a></p>
+<?php $this->load->view('os/resumoRecebimentos'); ?>
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
         <div class="widget-box">

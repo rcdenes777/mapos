@@ -13,6 +13,8 @@
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 
+<p><a class="btn btn-info" href="<?= site_url('recebimentos/os/' . (int) $result->idOs) ?>">Recebimentos</a></p>
+<?php $this->load->view('os/resumoRecebimentos'); ?>
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
@@ -742,7 +744,7 @@ if (!$anotacoes) {
                                 Swal.fire({
                                     type: "error",
                                     title: "Atenção",
-                                    text: "Ocorreu um erro ao tentar faturar OS."
+                                    text: data.message || "Ocorreu um erro ao tentar faturar OS."
                                 });
                                 $('#progress-fatura').hide();
                             }
@@ -1452,3 +1454,13 @@ if (!$anotacoes) {
 </script>
 
 <?php $this->load->view('os/miniaturasVideos'); ?>
+
+<script>
+$(function () {
+    if (!document.querySelector('.os-resumo-recebimentos')) { return; }
+    $('#formProdutos, #formServicos, #formDesconto').find('input, button, select').prop('disabled', true);
+    $('#tblProdutos a, #tblServicos .excluir').hide();
+    $('#cliente').prop('readonly', true);
+    $('#status option[value="Cancelado"]').prop('disabled', true);
+});
+</script>

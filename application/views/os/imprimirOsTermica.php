@@ -527,6 +527,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
 <script type="text/javascript">
   window.print();
 </script>
+<?php $this->load->view('os/resumoRecebimentos'); ?>
 </body>
     <script src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
     <script src="<?php echo base_url(); ?>assets/js/matrix.js"></script>

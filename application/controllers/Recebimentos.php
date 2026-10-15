@@ -13,6 +13,11 @@ class Recebimentos extends MY_Controller
         $this->data['menuOs'] = 'OS';
     }
 
+    public function index()
+    {
+        redirect('os');
+    }
+
     public function os($id = null)
     {
         if (!ctype_digit((string) $id) || !$this->os_model->getById((int) $id)) { show_404(); return; }

@@ -443,6 +443,8 @@ $totalProdutos = 0; ?>
         </div>
     </div>
 
+    <div class="container-fluid"><?php $this->load->view('os/resumoRecebimentos'); ?></div>
+
     <!-- Camada de ampliação. Fica vazia até o primeiro clique. -->
     <div class="zoom-fundo" id="zoomFundo" role="dialog" aria-label="Imagem ampliada">
         <span class="zoom-fechar" id="zoomFechar" title="Fechar" aria-label="Fechar">&times;</span>

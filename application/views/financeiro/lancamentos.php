@@ -144,7 +144,7 @@ foreach ($results as $r) {
     echo '<td>' . $r->idLancamentos . '</td>';
     echo '<td><span class="label label-' . $label . '">' . ucfirst($r->tipo) . '</span></td>';
     echo '<td>' . $r->cliente_fornecedor . '</td>';
-    echo '<td>' . $r->descricao . '</td>';
+    echo '<td>' . html_escape($r->descricao) . ($r->os_id ? ' <a href="' . site_url('recebimentos/os/' . (int) $r->os_id) . '">Recebimentos OS #' . (int) $r->os_id . '</a>' : '') . '</td>';
     echo '<td>' . $vencimento . '</td>';
     echo '<td>' . $status . '</td>';
     echo '<td>' . $r->observacoes . '</td>';
@@ -160,10 +160,10 @@ foreach ($results as $r) {
         $data_pagamento = date('d/m/Y', strtotime($r->data_pagamento));
     }
 
-    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eLancamento')) {
+    if (!$r->os_id && $this->permission->checkPermission($this->session->userdata('permissao'), 'eLancamento')) {
         echo '<a href="#modalEditar" style="margin-right: 1%" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" descricao="' . $r->descricao . '" valor="' . $r->valor . '" vencimento="' . date('d/m/Y', strtotime($r->data_vencimento)) . '" pagamento="' . $data_pagamento . '" baixado="' . $r->baixado . '" cliente="' . $r->cliente_fornecedor . '" formaPgto="' . $r->forma_pgto . '" tipo="' . $r->tipo . '" observacoes="' . $r->observacoes . '" descontos_editar="' . $r->desconto . '" valor_desconto_editar="' . ($r->valor_desconto != 0 ? $r->valor_desconto : $r->valor) . '" usuario="' . $r->nome . '" class="btn-nwe3 editar" title="Editar OS"><i class="bx bx-edit"></i></a>';
     }
-    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dLancamento')) {
+    if (!$r->os_id && $this->permission->checkPermission($this->session->userdata('permissao'), 'dLancamento')) {
         echo '<a href="#modalExcluir" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" class="btn-nwe4 excluir" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>';
     }
 

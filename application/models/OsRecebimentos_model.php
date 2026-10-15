@@ -132,6 +132,7 @@ class OsRecebimentos_model extends CI_Model
             if (!(int) $os->faturado) { throw new DomainException('Use iniciar recebimentos para uma OS ainda não faturada.'); }
             $l = $this->db->query('SELECT * FROM lancamentos WHERE idLancamentos = ? FOR UPDATE', [(int) $lancamentoId])->row();
             $total = self::centavos((float) $os->valor_desconto > 0 ? $os->valor_desconto : $os->valorTotal);
+            if ($total <= 0) { throw new DomainException('Total anterior da OS inválido. Confira o faturamento.'); }
             if (!$l || $l->os_id || $l->tipo !== 'receita' || (int) $l->clientes_id !== (int) $os->clientes_id
                 || $this->db->get_where('vendas', ['lancamentos_id' => (int) $lancamentoId])->num_rows()
                 || self::centavos((float) $l->valor_desconto > 0 ? $l->valor_desconto : $l->valor) !== $total) {

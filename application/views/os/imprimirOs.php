@@ -258,6 +258,7 @@ $totalProdutos = 0;
                     <span>ORDEM DE SERVIÇO <b>#<?= str_pad($result->idOs, 4, 0, STR_PAD_LEFT) ?></b></span>
                     <span>Data final: <b><?= $result->dataFinal ? date('d/m/Y', strtotime($result->dataFinal)) : '' ?></b></span>
                 </div>
+                <?php $this->load->view('os/resumoRecebimentos'); ?>
                 <div class="assinaturas">
                     <span>Assinatura do cliente</span>
                     <span>Assinatura do técnico</span>
@@ -513,7 +514,8 @@ $totalProdutos = 0; ?>
                         <span>ORDEM DE SERVIÇO <b>#<?= str_pad($result->idOs, 4, 0, STR_PAD_LEFT) ?></b></span>
                         <span>Data final: <b><?= $result->dataFinal ? date('d/m/Y', strtotime($result->dataFinal)) : '' ?></b></span>
                     </div>
-                    <div class="assinaturas">
+                    <?php $this->load->view('os/resumoRecebimentos'); ?>
+                <div class="assinaturas">
                         <span>Assinatura do cliente</span>
                         <span>Assinatura do técnico</span>
                     </div>

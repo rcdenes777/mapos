@@ -384,6 +384,10 @@ class Os_model extends CI_Model
         $result = $this->valorTotalOS($id);
         $amount = $result['valor_desconto'] != 0 ? round(floatval($result['valor_desconto']), 2) : round(floatval($result['totalServico'] + $result['totalProdutos']), 2);
 
+        $this->load->model('OsRecebimentos_model');
+        $resumo = $this->OsRecebimentos_model->resumo($id);
+        if ($resumo) { $amount = $resumo['saldo'] / 100; }
+
         if ($amount <= 0) {
             return;
         }
