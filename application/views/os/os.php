@@ -72,14 +72,15 @@
                             <th class="ph4">V.T (Faturado)</th>
                             <th>Recebido</th>
                             <th>Saldo</th>
-                            <th>Status</th>
+                            <th>Status financeiro</th>
+                            <th>Status da OS</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!$results) {
                             echo '<tr>
-                            <td colspan="14">Nenhuma OS Cadastrada</td>
+                            <td colspan="15">Nenhuma OS Cadastrada</td>
                             </tr>';
                         }
 
@@ -167,9 +168,12 @@ foreach ($results as $r) {
         $saldoCentavos = (int) round((float) $r->total_recebimentos * 100) - $recebidoCentavos;
         echo '<td style="white-space:nowrap">R$ ' . number_format($recebidoCentavos / 100, 2, ',', '.') . '</td>';
         echo '<td style="white-space:nowrap"><a class="badge" style="background-color:' . ($saldoCentavos > 0 ? '#9c4b00' : '#276b37') . ';color:#fff" href="' . site_url('recebimentos/os/' . (int) $r->idOs) . '" title="Consultar recebimentos e saldo">R$ ' . number_format($saldoCentavos / 100, 2, ',', '.') . '</a></td>';
+        $statusFinanceiro = $saldoCentavos === 0 ? 'Quitado' : ($recebidoCentavos > 0 ? 'Parcialmente recebido' : 'A receber');
+        $corFinanceira = $saldoCentavos === 0 ? '#276b37' : ($recebidoCentavos > 0 ? '#9c4b00' : '#a12622');
+        echo '<td><a class="badge" style="background-color:' . $corFinanceira . ';color:#fff;white-space:normal" href="' . site_url('recebimentos/os/' . (int) $r->idOs) . '">' . $statusFinanceiro . '</a></td>';
     } else {
         $semControle = $r->faturado ? '<a href="' . site_url('recebimentos/os/' . (int) $r->idOs) . '">Conferir</a>' : '—';
-        echo '<td>' . $semControle . '</td><td>' . $semControle . '</td>';
+        echo '<td>' . $semControle . '</td><td>' . $semControle . '</td><td>' . $semControle . '</td>';
     }
     echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
     echo '<td>';
