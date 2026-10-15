@@ -251,6 +251,8 @@ $totalProdutos = 0; ?>
                                     </tbody>
                                 </table>
 
+                                <?php $this->load->view('os/resumoRecebimentos'); ?>
+
                                 <table class="table table-condensed">
                                     <?php if ($result->descricaoProduto != null || $result->defeito != null || $result->laudoTecnico != null || $result->observacoes) { ?>
                                             <?php if ($result->descricaoProduto != null) { ?>
@@ -443,7 +445,6 @@ $totalProdutos = 0; ?>
         </div>
     </div>
 
-    <div class="container-fluid"><?php $this->load->view('os/resumoRecebimentos'); ?></div>
 
     <!-- Camada de ampliação. Fica vazia até o primeiro clique. -->
     <div class="zoom-fundo" id="zoomFundo" role="dialog" aria-label="Imagem ampliada">
