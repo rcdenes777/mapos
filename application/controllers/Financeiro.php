@@ -78,6 +78,13 @@ class Financeiro extends MY_Controller
 
         $this->data['estatisticas_financeiro'] = $this->financeiro_model->getEstatisticasFinanceiro2();
 
+        $this->load->model('OsRecebimentos_model');
+        $this->data['saldosOs'] = $this->OsRecebimentos_model->listarSaldos(
+            (string) ($this->input->get('os_situacao') ?: 'a_receber'),
+            (int) $this->input->get('os_pagina'),
+            $this->data['configuration']['per_page']
+        );
+
         $this->data['view'] = 'financeiro/lancamentos';
 
         return $this->layout();

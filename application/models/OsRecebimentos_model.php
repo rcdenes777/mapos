@@ -48,6 +48,35 @@ class OsRecebimentos_model extends CI_Model
             'historico' => $historico, 'controle' => $controle];
     }
 
+    public function listarSaldos($situacao = 'a_receber', $pagina = 1, $porPagina = 10)
+    {
+        $filtros = [
+            'a_receber' => 'saldo > 0',
+            'parcial' => 'saldo > 0 AND recebido > 0',
+            'sem_recebimento' => 'saldo > 0 AND recebido = 0',
+            'quitado' => 'saldo = 0',
+            'todas' => '1 = 1',
+        ];
+        if (!isset($filtros[$situacao])) { $situacao = 'a_receber'; }
+        $base = 'SELECT f.os_id, c.nomeCliente, f.total, f.vencimento,
+            COALESCE(r.recebido, 0) recebido, f.total - COALESCE(r.recebido, 0) saldo
+            FROM os_financeiro f
+            JOIN os o ON o.idOs = f.os_id
+            JOIN clientes c ON c.idClientes = o.clientes_id
+            LEFT JOIN (SELECT os_id, SUM(valor) recebido FROM os_recebimentos
+                WHERE estornado_em IS NULL GROUP BY os_id) r ON r.os_id = f.os_id';
+        // Soma por OS antes da paginação, sem multiplicar parcelas por produtos/serviços.
+        $origem = '(' . $base . ') resumo WHERE ' . $filtros[$situacao];
+        $totais = $this->db->query('SELECT COUNT(*) quantidade, COALESCE(SUM(total), 0) total,
+            COALESCE(SUM(recebido), 0) recebido, COALESCE(SUM(saldo), 0) saldo FROM ' . $origem)->row();
+        $porPagina = max(1, min(50, (int) $porPagina));
+        $paginas = max(1, (int) ceil($totais->quantidade / $porPagina));
+        $pagina = max(1, min($paginas, (int) $pagina));
+        $linhas = $this->db->query('SELECT * FROM ' . $origem . ' ORDER BY saldo DESC, vencimento, os_id DESC LIMIT ? OFFSET ?',
+            [$porPagina, ($pagina - 1) * $porPagina])->result();
+        return ['linhas' => $linhas, 'totais' => $totais, 'situacao' => $situacao, 'pagina' => $pagina, 'paginas' => $paginas];
+    }
+
     private function transacao($osId, callable $operacao)
     {
         $this->db->trans_begin();
