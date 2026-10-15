@@ -13,7 +13,6 @@
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 
-<p><a class="btn btn-info" href="<?= site_url('recebimentos/os/' . (int) $result->idOs) ?>">Recebimentos</a></p>
 <?php $this->load->view('os/resumoRecebimentos'); ?>
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
@@ -22,11 +21,9 @@
                 <span class="icon"><i class="fas fa-diagnoses"></i></span>
                 <h5>Editar Ordem de Serviço</h5>
                 <div class="buttons">
-                    <?php if ($result->faturado == 0) { ?>
-                        <a href="#modal-faturar" id="btn-faturar" role="button" data-toggle="modal" class="button btn btn-mini btn-danger">
-                            <span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text">Faturar</span>
-                        </a>
-                    <?php } ?>
+                    <a class="button btn btn-info" href="<?= site_url('recebimentos/os/' . (int) $result->idOs) ?>">
+                        <span class="button__icon"><i class="bx bx-dollar"></i></span><span class="button__text">Recebimentos</span>
+                    </a>
                     <a title="Visualizar OS" class="button btn btn-primary" href="<?php echo site_url() ?>/os/visualizar/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-show"></i></span><span class="button__text">Visualizar OS</span>
                     </a>
@@ -507,90 +504,6 @@ if (!$anotacoes) {
     </form>
 </div>
 
-<!-- Modal Faturar-->
-<div id="modal-faturar" class="modal hide fade " tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
-    <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Faturar OS</h3>
-        </div>
-        <div class="modal-body">
-            <div class="span12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com
-                asterisco.</div>
-            <div class="span12" style="margin-left: 0">
-                <label for="descricao">Descrição</label>
-                <input class="span12" id="descricao" type="text" name="descricao"
-                    value="Fatura de OS Nº: <?php echo $result->idOs; ?> " />
-            </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span12" style="margin-left: 0">
-                    <label for="cliente">Cliente*</label>
-                    <input class="span12" id="cliente" type="text" name="cliente"
-                        value="<?php echo $result->nomeCliente ?>" />
-                    <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
-                    <input type="hidden" name="os_id" id="os_id" value="<?php echo $result->idOs; ?>">
-                    <input type="hidden" name="tipoDesconto" id="tipoDesconto"
-                        value="<?php echo $result->tipo_desconto; ?>">
-                </div>
-            </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span6" style="margin-left: 0">
-                    <label for="valor">Valor*</label>
-                    <input type="hidden" id="tipo" name="tipo" value="receita" />
-                    <input class="span12 money" id="valor" type="text" data-affixes-stay="true" data-thousands=""
-                        data-decimal="." name="valor"
-                        value="<?php echo number_format($totals + $total, 2, '.', ''); ?>" />
-                </div>
-                <div class="span6" style="margin-left: 2;">
-                    <label for="valor">Valor Com Desconto*</label>
-                    <input class="span12 money" id="faturar-desconto" type="text" name="faturar-desconto"
-                        value="<?php echo number_format($result->valor_desconto, 2, '.', ''); ?> " />
-                    <strong><span style="color: red" id="resultado"></span></strong>
-                </div>
-            </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
-                    <label for="vencimento">Data Entrada*</label>
-                    <input class="span12 datepicker" autocomplete="off" id="vencimento" type="text" name="vencimento" />
-                </div>
-            </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
-                    <label for="recebido">Recebido?</label>
-                    &nbsp &nbsp &nbsp &nbsp <input id="recebido" type="checkbox" name="recebido" value="1" />
-                </div>
-                <div id="divRecebimento" class="span8" style=" display: none">
-                    <div class="span6">
-                        <label for="recebimento">Data Recebimento</label>
-                        <input class="span12 datepicker" autocomplete="off" id="recebimento" type="text"
-                            name="recebimento" />
-                    </div>
-                    <div class="span6">
-                        <label for="formaPgto">Forma Pgto</label>
-                        <select name="formaPgto" id="formaPgto" class="span12">
-                            <option value="Dinheiro">Dinheiro</option>
-                            <option value="Cartão de Crédito">Cartão de Crédito</option>
-                            <option value="Cartão de Débito">Cartão de Débito</option>
-                            <option value="Boleto">Boleto</option>
-                            <option value="Depósito">Depósito</option>
-                            <option value="Pix">Pix</option>
-                            <option value="Cheque">Cheque</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true"
-                id="btn-cancelar-faturar"><span class="button__icon"><i class="bx bx-x"></i></span><span
-                    class="button__text2">Cancelar</span></button>
-            <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-dollar'></i></span>
-                <span class="button__text2">Faturar</span></button>
-        </div>
-    </form>
-</div>
-
 <script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
 
 <script type="text/javascript">
@@ -675,83 +588,6 @@ if (!$anotacoes) {
 
         $(".money").maskMoney();
 
-        $('#recebido').click(function (event) {
-            var flag = $(this).is(':checked');
-            if (flag == true) {
-                $('#divRecebimento').show();
-            } else {
-                $('#divRecebimento').hide();
-            }
-        });
-
-        $("#formFaturar").validate({
-            rules: {
-                descricao: {
-                    required: true
-                },
-                cliente: {
-                    required: true
-                },
-                valor: {
-                    required: true
-                },
-                vencimento: {
-                    required: true
-                }
-
-            },
-            messages: {
-                descricao: {
-                    required: 'Campo Requerido.'
-                },
-                cliente: {
-                    required: 'Campo Requerido.'
-                },
-                valor: {
-                    required: 'Campo Requerido.'
-                },
-                vencimento: {
-                    required: 'Campo Requerido.'
-                }
-            },
-            submitHandler: function (form) {
-                var dados = $(form).serialize();
-                var qtdProdutos = $('#tblProdutos >tbody >tr').length;
-                var qtdServicos = $('#tblServicos >tbody >tr').length;
-                var qtdTotalProdutosServicos = qtdProdutos + qtdServicos;
-
-                $('#btn-cancelar-faturar').trigger('click');
-
-                if (qtdTotalProdutosServicos <= 0) {
-                    Swal.fire({
-                        type: "error",
-                        title: "Atenção",
-                        text: "Não é possível faturar uma OS sem serviços e/ou produtos"
-                    });
-                } else if (qtdTotalProdutosServicos > 0) {
-                    $.ajax({
-                        type: "POST",
-                        url: "<?php echo base_url(); ?>index.php/os/faturar",
-                        data: dados,
-                        dataType: 'json',
-                        success: function (data) {
-                            if (data.result == true) {
-                                window.location.reload(true);
-                            } else {
-                                Swal.fire({
-                                    type: "error",
-                                    title: "Atenção",
-                                    text: data.message || "Ocorreu um erro ao tentar faturar OS."
-                                });
-                                $('#progress-fatura').hide();
-                            }
-                        }
-                    });
-
-                    return false;
-                }
-            }
-        });
         $('#formDesconto').submit(function (e) {
             e.preventDefault();
             var form = $(this);
@@ -797,63 +633,6 @@ if (!$anotacoes) {
                     });
                 }
             });
-        });
-
-        $("#formwhatsapp").validate({
-            rules: {
-                descricao: {
-                    required: true
-                },
-                cliente: {
-                    required: true
-                },
-                valor: {
-                    required: true
-                },
-                vencimento: {
-                    required: true
-                }
-
-            },
-            messages: {
-                descricao: {
-                    required: 'Campo Requerido.'
-                },
-                cliente: {
-                    required: 'Campo Requerido.'
-                },
-                valor: {
-                    required: 'Campo Requerido.'
-                },
-                vencimento: {
-                    required: 'Campo Requerido.'
-                }
-            },
-            submitHandler: function (form) {
-                var dados = $(form).serialize();
-                $('#btn-cancelar-faturar').trigger('click');
-                $.ajax({
-                    type: "POST",
-                    url: "<?php echo base_url(); ?>index.php/os/faturar",
-                    data: dados,
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.result == true) {
-
-                            window.location.reload(true);
-                        } else {
-                            Swal.fire({
-                                type: "error",
-                                title: "Atenção",
-                                text: "Ocorreu um erro ao tentar  OS."
-                            });
-                            $('#progress-fatura').hide();
-                        }
-                    }
-                });
-
-                return false;
-            }
         });
 
         $("#produto").autocomplete({

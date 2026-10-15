@@ -5,7 +5,7 @@
 <?php $this->load->view('os/resumoRecebimentos'); ?>
 <?php if (!$recebimentos && $podeReceber): ?>
     <?php if (!$result->faturado): ?>
-        <p>Inicie o controle para registrar entradas e pagamentos posteriores. O total será fixado e a OS será faturada; produtos, serviços e descontos ficarão protegidos.</p>
+        <p>Inicie o controle para registrar entradas e pagamentos posteriores. O total será fixado e a cobrança registrada; produtos, serviços e descontos ficarão protegidos.</p>
         <?= form_open('recebimentos/salvar/' . (int) $result->idOs) ?>
         <input type="hidden" name="acao" value="iniciar">
         <label for="vencimento">Vencimento do saldo</label><input id="vencimento" type="date" name="vencimento" value="<?= date('Y-m-d') ?>" required>
