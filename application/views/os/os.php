@@ -31,11 +31,10 @@
                 <select name="status" id="" class="span12">
                     <option value="">Selecione status</option>
                     <option value="Aberto" <?=$this->input->get('status') == 'Aberto' ? 'selected' : ''?>>Aberto</option>
-                    <option value="Faturado" <?=$this->input->get('status') == 'Faturado' ? 'selected' : ''?>>Faturado</option>
                     <option value="Negociação" <?=$this->input->get('status') == 'Negociação' ? 'selected' : ''?>>Negociação</option>
                     <option value="Em Andamento" <?=$this->input->get('status') == 'Em Andamento' ? 'selected' : ''?>>Em Andamento</option>
                     <option value="Orçamento" <?=$this->input->get('status') == 'Orçamento' ? 'selected' : ''?>>Orçamento</option>
-                    <option value="Finalizado" <?=$this->input->get('status') == 'Finalizado' ? 'selected' : ''?>>Finalizado</option>
+                    <option value="Finalizado" <?=in_array($this->input->get('status'), ['Finalizado', 'Faturado'], true) ? 'selected' : ''?>>Finalizado</option>
                     <option value="Cancelado" <?=$this->input->get('status') == 'Cancelado' ? 'selected' : ''?>>Cancelado</option>
                     <option value="Aguardando Peças" <?=$this->input->get('status') == 'Aguardando Peças' ? 'selected' : ''?>>Aguardando Peças</option>
                     <option value="Aprovado" <?=$this->input->get('status') == 'Aprovado' ? 'selected' : ''?>>Aprovado</option>
@@ -69,7 +68,6 @@
                             <th>Valor Total</th>
                             <th>Desconto</th>
                             <th>Valor com Desconto</th>
-                            <th class="ph4">V.T (Faturado)</th>
                             <th>Recebido</th>
                             <th>Saldo</th>
                             <th>Status financeiro</th>
@@ -80,7 +78,7 @@
                     <tbody>
                         <?php if (!$results) {
                             echo '<tr>
-                            <td colspan="15">Nenhuma OS Cadastrada</td>
+                            <td colspan="14">Nenhuma OS Cadastrada</td>
                             </tr>';
                         }
 
@@ -162,7 +160,6 @@ foreach ($results as $r) {
     echo '<td>R$ ' . number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.') . '</td>';
     echo '<td>R$ ' . number_format(floatval($r->desconto), 2, ',', '.') . '</td>';
     echo '<td>R$ ' . number_format(floatval($r->valor_desconto), 2, ',', '.') . '</td>';
-    echo '<td class="ph4">R$ ' . number_format($r->faturado ? floatval($r->valor_desconto) : 0.00, 2, ',', '.') . '</td>';
     if ($r->total_recebimentos !== null) {
         $recebidoCentavos = (int) round((float) $r->recebido_os * 100);
         $saldoCentavos = (int) round((float) $r->total_recebimentos * 100) - $recebidoCentavos;

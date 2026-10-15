@@ -124,7 +124,6 @@
                             <select style="padding-left: 30px" class="span12" name="statusOsGet" id="statusOsGet" value="">
                                 <option value="">Todos os Status</option>
                                 <option value="Aberto">Aberto</option>
-                                <option value="Faturado">Faturado</option>
                                 <option value="Negociação">Negociação</option>
                                 <option value="Orçamento">Orçamento</option>
                                 <option value="Em Andamento">Em Andamento</option>
