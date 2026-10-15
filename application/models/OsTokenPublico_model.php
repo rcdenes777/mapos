@@ -63,7 +63,7 @@ class OsTokenPublico_model extends CI_Model
      * Pega o mais recente para o caso de já existirem vários — histórico de
      * antes do reaproveitamento, ou revogação parcial.
      */
-    private function tokenVigente($osId)
+    public function tokenVigente($osId)
     {
         $this->db->where('os_id', (int) $osId);
         $this->db->where('data_expiracao >=', date('Y-m-d H:i:s'));

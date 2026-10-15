@@ -297,6 +297,10 @@ class Os extends MY_Controller
         }
 
         $this->data['result'] = $this->os_model->getById($this->uri->segment(3));
+        $this->load->model('OsTokenPublico_model');
+        $tokenPublico = $this->OsTokenPublico_model->tokenVigente((int) $this->uri->segment(3));
+        $this->data['linkPublicoOs'] = $tokenPublico ? base_url('publico/os/' . $tokenPublico) : '';
+
 
         $this->data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
         $this->data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
@@ -333,6 +337,10 @@ class Os extends MY_Controller
 
         $this->load->model('mapos_model');
         $this->data['result'] = $this->os_model->getById($this->uri->segment(3));
+        $this->load->model('OsTokenPublico_model');
+        $tokenPublico = $this->OsTokenPublico_model->tokenVigente((int) $this->uri->segment(3));
+        $this->data['linkPublicoOs'] = $tokenPublico ? base_url('publico/os/' . $tokenPublico) : '';
+
         $this->data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
         $this->data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
         $this->data['emitente'] = $this->mapos_model->getEmitente();

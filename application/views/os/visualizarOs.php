@@ -563,8 +563,8 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
         }
 
         if ($zap.length) {
-            // Estado inicial: sem link gerado, o marcador não pode ir cru.
-            $zap.attr('href', montarHrefWhats(''));
+            // Reaproveita somente o link vigente; abrir a OS não cria um token.
+            $zap.attr('href', montarHrefWhats(<?php echo json_encode($linkPublicoOs ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>));
         }
 
         $(document).on('click', '#gerarLinkPublico', function(event) {
