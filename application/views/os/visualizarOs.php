@@ -164,7 +164,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>DESCRIÇÃO: </b>
-                                            <?php echo printCampoOsHtml($result->descricaoProduto) ?>
+                                            <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->descricaoProduto) ?></div>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -173,7 +173,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>DEFEITO APRESENTADO: </b>
-                                            <?php echo printCampoOsHtml($result->defeito) ?>
+                                            <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->defeito) ?></div>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -182,7 +182,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>OBSERVAÇÕES: </b>
-                                            <?php echo printCampoOsHtml($result->observacoes) ?>
+                                            <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->observacoes) ?></div>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -191,7 +191,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     <tr>
                                         <td colspan="5">
                                             <b>LAUDO TÉCNICO: </b>
-                                            <?php echo printCampoOsHtml($result->laudoTecnico) ?>
+                                            <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->laudoTecnico) ?></div>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -616,3 +616,5 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
         });
     });
 </script>
+
+<?php $this->load->view('os/galeriaFotos'); ?>

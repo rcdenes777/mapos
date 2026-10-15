@@ -257,7 +257,7 @@ $totalProdutos = 0; ?>
                                                 <tr>
                                                     <td>
                                                         <strong>DESCRIÇÃO: </strong>
-                                                        <?php echo printCampoOsHtml($result->descricaoProduto) ?>
+                                                        <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->descricaoProduto) ?></div>
                                                     </td>
                                                 </tr>
 
@@ -267,7 +267,7 @@ $totalProdutos = 0; ?>
                                                 <tr>
                                                     <td>
                                                         <strong>DEFEITO APRESENTADO: </strong>
-                                                        <?php echo printCampoOsHtml($result->defeito) ?>
+                                                        <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->defeito) ?></div>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -276,7 +276,7 @@ $totalProdutos = 0; ?>
                                                 <tr>
                                                     <td>
                                                         <strong>OBSERVAÇÕES: </strong>
-                                                        <?php echo printCampoOsHtml($result->observacoes) ?>
+                                                        <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->observacoes) ?></div>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -285,7 +285,7 @@ $totalProdutos = 0; ?>
                                                 <tr>
                                                     <td>
                                                         <strong>LAUDO TÉCNICO: </strong>
-                                                        <?php echo printCampoOsHtml($result->laudoTecnico) ?>
+                                                        <div class="os-fotos-campo"><?php echo printCampoOsHtml($result->laudoTecnico) ?></div>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
@@ -531,6 +531,8 @@ $totalProdutos = 0; ?>
             });
         })();
     </script>
+
+<?php $this->load->view('os/galeriaFotos'); ?>
 </body>
 
 </html>
