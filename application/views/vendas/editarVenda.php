@@ -288,7 +288,7 @@ foreach ($produtos as $p) {
             </div>
         </div>
         <div class="modal-footer" style="display:flex">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">
+            <button type="button" class="button btn btn-warning" data-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">
                 <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text2">Faturar</span></button>
         </div>        
@@ -480,7 +480,6 @@ foreach ($produtos as $p) {
                 var dados = $(form).serialize();
                 var qtdProdutos = $('#tblProdutos >tbody >tr').length;
 
-                $('#btn-cancelar-faturar').trigger('click');
 
                 if (qtdProdutos <= 0) {
                     Swal.fire({
@@ -489,6 +488,8 @@ foreach ($produtos as $p) {
                         text: "Não é possível faturar uma venda sem produtos"
                     });
                 } else if (qtdProdutos > 0) {
+                    var $enviar = $(form).find('button:not([type="button"])');
+                    $enviar.prop('disabled', true);
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/vendas/faturar",
@@ -505,7 +506,11 @@ foreach ($produtos as $p) {
                                 });
                                 $('#progress-fatura').hide();
                             }
-                        }
+                        },
+                        error: function() {
+                            Swal.fire({type: 'error', title: 'Não foi possível faturar', text: 'Confira os campos e tente novamente.'});
+                        },
+                        complete: function() { $enviar.prop('disabled', false); }
                     });
 
                     return false;
