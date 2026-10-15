@@ -160,6 +160,10 @@ class OsRecebimentos_model extends CI_Model
             if ($this->resumo($os->idOs)) { throw new DomainException('A OS já possui controle de recebimentos.'); }
             if (!(int) $os->faturado) { throw new DomainException('Use iniciar recebimentos para uma OS ainda não faturada.'); }
             $l = $this->db->query('SELECT * FROM lancamentos WHERE idLancamentos = ? FOR UPDATE', [(int) $lancamentoId])->row();
+            if (($os->lancamento && (int) $os->lancamento !== (int) $lancamentoId)
+                || $this->db->where('lancamento', (int) $lancamentoId)->where('idOs !=', $os->idOs)->count_all_results('os')) {
+                throw new DomainException('Esta receita já pertence a outra OS ou difere do lançamento original desta OS.');
+            }
             $total = self::centavos((float) $os->valor_desconto > 0 ? $os->valor_desconto : $os->valorTotal);
             if ($total <= 0) { throw new DomainException('Total anterior da OS inválido. Confira o faturamento.'); }
             if (!$l || $l->os_id || $l->tipo !== 'receita' || (int) $l->clientes_id !== (int) $os->clientes_id

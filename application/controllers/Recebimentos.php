@@ -29,7 +29,15 @@ class Recebimentos extends MY_Controller
         $this->data['podeEstornar'] = $this->permitido('eOs') && $this->permitido('dLancamento') && $this->permitido('eLancamento');
         $this->data['candidatos'] = $this->db->select('idLancamentos, descricao, valor, valor_desconto, baixado, data_vencimento')
             ->where('clientes_id', $this->data['result']->clientes_id)->where('tipo', 'receita')->where('os_id', null)
+            ->where('NOT EXISTS (SELECT 1 FROM os outra WHERE outra.lancamento = lancamentos.idLancamentos AND outra.idOs != ' . (int) $id . ')', null, false)
+            ->where('NOT EXISTS (SELECT 1 FROM vendas WHERE vendas.lancamentos_id = lancamentos.idLancamentos)', null, false)
             ->order_by('idLancamentos', 'desc')->get('lancamentos')->result();
+        if ($this->data['result']->lancamento) {
+            $original = (int) $this->data['result']->lancamento;
+            $this->data['candidatos'] = array_filter($this->data['candidatos'], static function ($item) use ($original) {
+                return (int) $item->idLancamentos === $original;
+            });
+        }
         $this->data['view'] = 'os/recebimentos';
         $this->layout();
     }
