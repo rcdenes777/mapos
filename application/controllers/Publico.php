@@ -316,8 +316,7 @@ class Publico extends CI_Controller
 
     /**
      * Serve um anexo (foto/vídeo) da OS dona do token, lendo do disco.
-     * Sem suporte a Range/seek nesta fase (Fase 3) — o navegador baixa/
-     * reproduz do início ao fim.
+     * Suporta uma faixa de bytes para metadados, reprodução e avanço do vídeo.
      */
     public function anexo($token = null, $anexoId = null)
     {
@@ -345,20 +344,43 @@ class Publico extends CI_Controller
             return;
         }
 
-        // header() direto, e não $this->output->set_content_type(): a entrega
-        // abaixo libera a resposta na hora e os headers enfileirados no CI
-        // Output chegam tarde demais — sem isso o navegador recebia
-        // "Content-Type: text/html" para o vídeo (confirmado com `curl -D -`).
-        //
-        // nosniff: o Content-Type sai de mime_content_type() (sniff do
-        // conteúdo). Sem o header, um arquivo enviado como imagem mas contendo
-        // HTML/JS poderia ser reinterpretado pelo navegador na origem pública.
+        $tamanho = filesize($caminhoCompleto);
+        $inicio = 0;
+        $fim = $tamanho - 1;
+        $download = $this->input->get('download') === '1';
+        $range = $_SERVER['HTTP_RANGE'] ?? '';
+        if ($range !== '' && ! $download) {
+            if (! preg_match('/^bytes=(\d*)-(\d*)$/D', $range, $faixa)
+                || ($faixa[1] === '' && $faixa[2] === '')) {
+                header('Content-Range: bytes */' . $tamanho);
+                http_response_code(416);
+                return;
+            }
+            if ($faixa[1] === '') {
+                $inicio = max(0, $tamanho - (int) $faixa[2]);
+            } else {
+                $inicio = (int) $faixa[1];
+            }
+            if ($faixa[1] !== '' && $faixa[2] !== '') {
+                $fim = min($fim, (int) $faixa[2]);
+            }
+            if ($inicio > $fim || $inicio >= $tamanho || $tamanho === 0) {
+                header('Content-Range: bytes */' . $tamanho);
+                http_response_code(416);
+                return;
+            }
+            http_response_code(206);
+            header('Content-Range: bytes ' . $inicio . '-' . $fim . '/' . $tamanho);
+        }
         header('Content-Type: ' . (mime_content_type($caminhoCompleto) ?: 'application/octet-stream'));
-        header('Content-Length: ' . filesize($caminhoCompleto));
-        header('Content-Disposition: inline; filename="' . basename($caminhoCompleto) . '"');
+        header('Accept-Ranges: bytes');
+        header('Content-Length: ' . ($fim - $inicio + 1));
+        header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="' . basename($caminhoCompleto) . '"');
         header('X-Content-Type-Options: nosniff');
-
-        $this->entregarArquivo($caminhoCompleto);
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+            return;
+        }
+        $this->entregarArquivo($caminhoCompleto, $inicio, $fim - $inicio + 1);
     }
 
     /**
@@ -470,7 +492,7 @@ class Publico extends CI_Controller
      * acumula o arquivo todo na memória do PHP (memory_limit) antes de enviar.
      * Limpar os buffers e ler em blocos mantém o consumo constante.
      */
-    private function entregarArquivo($caminho)
+    private function entregarArquivo($caminho, $inicio = 0, $restante = null)
     {
         // Descarta buffers do CI para o corpo não ser acumulado em memória.
         while (ob_get_level() > 0) {
@@ -483,14 +505,16 @@ class Publico extends CI_Controller
             return;
         }
 
-        while (! feof($handle)) {
-            $bloco = fread($handle, 8192);
+        fseek($handle, $inicio);
+        while (! feof($handle) && ($restante === null || $restante > 0)) {
+            $bloco = fread($handle, $restante === null ? 8192 : min(8192, $restante));
 
             if ($bloco === false) {
                 break;
             }
 
             echo $bloco;
+            if ($restante !== null) { $restante -= strlen($bloco); }
             flush();
         }
 

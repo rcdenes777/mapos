@@ -333,10 +333,7 @@ $totalProdutos = 0; ?>
                                                 $ehVideo = (bool) preg_match('/\.(mp4|mov|webm|ogg|m4v)$/i', $a->anexo);
 
                                                 if ($ehVideo) {
-                                                    // Sem thumb no banco (o upload só gera miniatura de
-                                                    // imagem) e sem suporte a Range nesta fase (Fase 3):
-                                                    // o vídeo carrega e reproduz do início ao fim.
-                                                    echo '<div class="anexo-celula"><video src="' . $link . '" controls preload="metadata"></video></div>';
+                                                    echo '<div class="anexo-celula"><video src="' . $link . '#t=0.1" controls playsinline preload="auto"></video><p><a href="' . $link . '?download=1" download>Baixar vídeo</a></p></div>';
                                                 } else {
                                                     echo '<div class="anexo-celula"><a href="' . $link . '" target="_blank"><img src="' . $thumb . '" alt=""></a></div>';
                                                 }
