@@ -247,7 +247,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                                 // imagem): o próprio <video> exibe o primeiro quadro
                                                 // com preload="metadata", sem baixar o arquivo todo
                                                 // nem exigir ffmpeg no servidor.
-                                                $miniatura = '<video src="' . $link . '#t=0.1" muted playsinline preload="metadata" style="width: 100%; height: 150px; object-fit: cover; pointer-events: none;"></video>';
+                                                $miniatura = '<video src="' . $link . '#t=0.1" class="os-video-miniatura" muted playsinline preload="auto" style="width: 100%; height: 150px; object-fit: cover; pointer-events: none;"></video>';
                                             } else {
                                                 if ($a->thumb == null) {
                                                     $miniatura = '<img src="' . base_url() . 'assets/img/icon-file.png" alt="">';
