@@ -525,8 +525,8 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
-        if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
         if ($this->protegerFinanceiro($id)) { return; }
+        if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
 
 
         if (! $id || ! $idProdutos_os) {
@@ -581,8 +581,8 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
-        if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
         if ($this->protegerFinanceiro($id)) { return; }
+        if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
 
 
         $os = $this->os_model->getById($id);
@@ -698,8 +698,8 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
-        if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
         if ($this->protegerFinanceiro($id)) { return; }
+        if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
 
 
         if (! $id || ! $idServicos_os) {
@@ -747,8 +747,8 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
-        if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
         if ($this->protegerFinanceiro($id)) { return; }
+        if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
 
 
         if ($this->os_model->delete('servicos_os', 'idServicos_os', $idServicos_os)) {

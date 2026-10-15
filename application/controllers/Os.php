@@ -823,6 +823,10 @@ class Os extends MY_Controller
     public function excluirProduto()
     {
         $itemFinanceiro = $this->db->get_where('produtos_os', ['idProdutos_os' => (int) $this->input->post('idProduto')])->row();
+        if (!$itemFinanceiro || (int) $itemFinanceiro->os_id !== (int) $this->input->post('idOs')) {
+            return $this->output->set_content_type('application/json')->set_status_header(404)
+                ->set_output(json_encode(['result' => false, 'message' => 'Item não encontrado nesta OS.']));
+        }
         if ($itemFinanceiro && $this->financeiroProtegido((int) $itemFinanceiro->os_id)) { return; }
 
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
@@ -840,8 +844,8 @@ class Os extends MY_Controller
         }
 
         if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
-            $quantidade = $this->input->post('quantidade');
-            $produto = $this->input->post('produto');
+            $quantidade = $itemFinanceiro->quantidade;
+            $produto = $itemFinanceiro->produtos_id;
 
             $this->load->model('produtos_model');
 
@@ -915,6 +919,10 @@ class Os extends MY_Controller
     public function excluirServico()
     {
         $itemFinanceiro = $this->db->get_where('servicos_os', ['idServicos_os' => (int) $this->input->post('idServico')])->row();
+        if (!$itemFinanceiro || (int) $itemFinanceiro->os_id !== (int) $this->input->post('idOs')) {
+            return $this->output->set_content_type('application/json')->set_status_header(404)
+                ->set_output(json_encode(['result' => false, 'message' => 'Item não encontrado nesta OS.']));
+        }
         if ($itemFinanceiro && $this->financeiroProtegido((int) $itemFinanceiro->os_id)) { return; }
 
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
