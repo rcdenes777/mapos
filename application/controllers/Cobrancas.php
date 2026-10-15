@@ -38,6 +38,13 @@ class Cobrancas extends MY_Controller
         } else {
             $id = $this->input->post('id');
             $tipo = $this->input->post('tipo');
+            $this->load->model('Os_model');
+            // Reserva a OS antes de consultar o financeiro e antes de chamar o
+            // provedor. Recebimentos manuais usam o mesmo bloqueio até o fim.
+            if ($tipo === 'os' && !$this->Os_model->bloquearOs($id)) {
+                return $this->output->set_content_type('application/json')->set_status_header(409)
+                    ->set_output(json_encode(['message' => 'OS em alteração por outra operação. Tente novamente.']));
+            }
             if ($tipo === 'os' && $this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
                 return $this->output->set_content_type('application/json')->set_status_header(409)
                     ->set_output(json_encode(['message' => 'Esta OS usa recebimentos manuais. Consulte Recebimentos para evitar cobrança duplicada.']));
@@ -46,7 +53,6 @@ class Cobrancas extends MY_Controller
             $formaPagamento = $this->input->post('forma_pagamento');
             $gatewayDePagamento = $this->input->post('gateway_de_pagamento');
 
-            $this->load->model('Os_model');
             $this->load->model('vendas_model');
             $cobranca = $tipo === 'os'
                 ? $this->Os_model->getCobrancas($this->input->post('id'))
