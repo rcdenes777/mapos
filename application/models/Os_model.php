@@ -178,16 +178,17 @@ class Os_model extends CI_Model
     public function autoCompleteProduto($q)
     {
         $this->db->select('*');
-        $this->db->limit(25);
+        $this->db->order_by('descricao', 'ASC');
         $this->db->like('codDeBarra', $q);
         $this->db->or_like('descricao', $q);
         $query = $this->db->get('produtos');
+        $row_set = [];
         if ($query->num_rows() > 0) {
             foreach ($query->result_array() as $row) {
                 $row_set[] = ['label' => $row['descricao'] . ' | Preço: R$ ' . $row['precoVenda'] . ' | Estoque: ' . $row['estoque'], 'estoque' => $row['estoque'], 'id' => $row['idProdutos'], 'preco' => $row['precoVenda']];
             }
-            echo json_encode($row_set);
         }
+        echo json_encode($row_set);
     }
 
     public function autoCompleteProdutoSaida($q)
@@ -255,15 +256,16 @@ class Os_model extends CI_Model
     public function autoCompleteServico($q)
     {
         $this->db->select('*');
-        $this->db->limit(25);
+        $this->db->order_by('nome', 'ASC');
         $this->db->like('nome', $q);
         $query = $this->db->get('servicos');
+        $row_set = [];
         if ($query->num_rows() > 0) {
             foreach ($query->result_array() as $row) {
                 $row_set[] = ['label' => $row['nome'] . ' | Preço: R$ ' . $row['preco'], 'id' => $row['idServicos'], 'preco' => $row['preco']];
             }
-            echo json_encode($row_set);
         }
+        echo json_encode($row_set);
     }
 
     public function anexar($os, $anexo, $url, $thumb, $path)

@@ -1,3 +1,7 @@
+<style>
+.os-lista-cadastro { max-height: 240px; overflow-y: auto; overflow-x: hidden; z-index: 1051; }
+.os-lista-cadastro .ui-menu-item a { white-space: normal; overflow-wrap: anywhere; }
+</style>
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 <script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
@@ -856,7 +860,8 @@ if (!$anotacoes) {
 
         $("#produto").autocomplete({
             source: "<?php echo base_url(); ?>index.php/os/autoCompleteProduto",
-            minLength: 2,
+            minLength: 0,
+            create: function () { $(this).autocomplete('widget').addClass('os-lista-cadastro'); },
             select: function (event, ui) {
                 $("#codDeBarra").val(ui.item.codbar);
                 $("#idProduto").val(ui.item.id);
@@ -864,16 +869,21 @@ if (!$anotacoes) {
                 $("#preco").val(ui.item.preco);
                 $("#quantidade").focus();
             }
+        }).on('focus click', function () {
+            $(this).autocomplete('search', this.value);
         });
 
         $("#servico").autocomplete({
             source: "<?php echo base_url(); ?>index.php/os/autoCompleteServico",
-            minLength: 2,
+            minLength: 0,
+            create: function () { $(this).autocomplete('widget').addClass('os-lista-cadastro'); },
             select: function (event, ui) {
                 $("#idServico").val(ui.item.id);
                 $("#preco_servico").val(ui.item.preco);
                 $("#quantidade_servico").focus();
             }
+        }).on('focus click', function () {
+            $(this).autocomplete('search', this.value);
         });
 
 
