@@ -205,11 +205,6 @@ class OsController extends REST_Controller
 
     public function index_put($id)
     {
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
-
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -217,6 +212,9 @@ class OsController extends REST_Controller
                 'message' => 'Você não está autorizado a Adicionar OS!',
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
+
+        if ($this->protegerFinanceiro($id)) { return; }
+
 
         $os = $this->os_model->getById($id);
 
@@ -335,11 +333,6 @@ class OsController extends REST_Controller
 
     public function index_delete($id)
     {
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
-
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'dOs')) {
             $this->response([
@@ -347,6 +340,9 @@ class OsController extends REST_Controller
                 'message' => 'Você não está autorizado a Apagar OS!',
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
+
+        if ($this->protegerFinanceiro($id)) { return; }
+
 
         if (! $id) {
             $this->response([
@@ -407,11 +403,6 @@ class OsController extends REST_Controller
 
     public function desconto_post($id)
     {
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
-
         if (empty($this->post('desconto', true)) || empty($this->post('valor_desconto', true))) {
             $this->response([
                 'status' => false,
@@ -434,6 +425,9 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
+        if ($this->protegerFinanceiro($id)) { return; }
+
+
         if ($this->os_model->edit('os', $data, 'idOs', $id)) {
             $this->log_app('Adicionou um desconto na OS. ID: ' . $id);
             $this->response([
@@ -450,11 +444,6 @@ class OsController extends REST_Controller
 
     public function produtos_post($id)
     {
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
-
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -462,6 +451,9 @@ class OsController extends REST_Controller
                 'message' => 'Você não está autorizado a Editar OS!',
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
+
+        if ($this->protegerFinanceiro($id)) { return; }
+
 
         $_POST = (array) json_decode(trim(file_get_contents('php://input')));
         $_POST['idOsProduto'] = $id;
@@ -534,10 +526,7 @@ class OsController extends REST_Controller
         }
 
         if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
+        if ($this->protegerFinanceiro($id)) { return; }
 
 
         if (! $id || ! $idProdutos_os) {
@@ -593,10 +582,7 @@ class OsController extends REST_Controller
         }
 
         if (!$this->itemPertenceOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id)) { return; }
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
+        if ($this->protegerFinanceiro($id)) { return; }
 
 
         $os = $this->os_model->getById($id);
@@ -641,11 +627,6 @@ class OsController extends REST_Controller
 
     public function servicos_post($id)
     {
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
-
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -653,6 +634,9 @@ class OsController extends REST_Controller
                 'message' => 'Você não está autorizado a Editar OS!',
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
+
+        if ($this->protegerFinanceiro($id)) { return; }
+
 
         $_POST = (array) json_decode(trim(file_get_contents('php://input')));
         $_POST['idOsServico'] = $id;
@@ -715,10 +699,7 @@ class OsController extends REST_Controller
         }
 
         if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
+        if ($this->protegerFinanceiro($id)) { return; }
 
 
         if (! $id || ! $idServicos_os) {
@@ -767,10 +748,7 @@ class OsController extends REST_Controller
         }
 
         if (!$this->itemPertenceOs('servicos_os', 'idServicos_os', $idServicos_os, $id)) { return; }
-        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
-            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
-            return;
-        }
+        if ($this->protegerFinanceiro($id)) { return; }
 
 
         if ($this->os_model->delete('servicos_os', 'idServicos_os', $idServicos_os)) {
@@ -1015,6 +993,19 @@ class OsController extends REST_Controller
             'status' => false,
             'message' => 'Erro ao tentar excluir anexo.',
         ], REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    private function protegerFinanceiro($id)
+    {
+        if (!$this->os_model->bloquearOs($id)) {
+            $this->response(['status' => false, 'message' => 'OS em alteração por outra operação. Tente novamente.'], 409);
+            return true;
+        }
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return true;
+        }
+        return false;
     }
 
     private function itemPertenceOs($tabela, $campo, $itemId, $osId)

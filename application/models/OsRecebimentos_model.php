@@ -79,6 +79,10 @@ class OsRecebimentos_model extends CI_Model
 
     private function transacao($osId, callable $operacao)
     {
+        $this->load->model('os_model');
+        if (!$this->os_model->bloquearOs($osId)) {
+            throw new DomainException('Esta OS está sendo alterada em outra operação. Tente novamente.');
+        }
         $this->db->trans_begin();
         try {
             $os = $this->db->query('SELECT * FROM os WHERE idOs = ? FOR UPDATE', [(int) $osId])->row();

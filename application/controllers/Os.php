@@ -207,6 +207,16 @@ class Os extends MY_Controller
         $this->data['custom_error'] = '';
         $this->data['texto_de_notificacao'] = $this->data['configuration']['notifica_whats'];
 
+        if ($this->input->method() === 'post') {
+            $id = $this->input->post('idOs');
+            if (!ctype_digit((string) $id) || (int) $id !== (int) $this->uri->segment(3)) {
+                show_error('OS inválida.', 400); return;
+            }
+            if (!$this->os_model->bloquearOs($id)) {
+                show_error('OS em alteração por outra operação. Tente novamente.', 409); return;
+            }
+        }
+
         $this->data['editavel'] = $this->os_model->isEditable($this->input->post('idOs'));
         if (! $this->data['editavel']) {
             $this->session->set_flashdata('error', 'Esta OS já e seu status não pode ser alterado e nem suas informações atualizadas. Por favor abrir uma nova OS.');
@@ -614,6 +624,9 @@ class Os extends MY_Controller
         }
 
         $id = $this->input->post('id');
+        if (!$this->os_model->bloquearOs($id)) {
+            show_error('OS em alteração por outra operação. Tente novamente.', 409); return;
+        }
         if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()
             || $this->db->get_where('os_recebimentos', ['os_id' => (int) $id])->num_rows()) {
             $this->session->set_flashdata('error', 'OS com histórico de recebimentos não pode ser excluída.');
@@ -1228,6 +1241,11 @@ class Os extends MY_Controller
 
     private function financeiroProtegido($osId)
     {
+        if (!$this->os_model->bloquearOs($osId)) {
+            $this->output->set_content_type('application/json')->set_status_header(409)
+                ->set_output(json_encode(['result' => false, 'message' => 'OS em alteração por outra operação. Tente novamente.']));
+            return true;
+        }
         if (!$this->db->get_where('os_financeiro', ['os_id' => (int) $osId])->num_rows()) { return false; }
         $this->output->set_content_type('application/json')->set_status_header(409)
             ->set_output(json_encode(['result' => false, 'message' => 'OS com recebimentos: total protegido. Consulte Recebimentos.']));

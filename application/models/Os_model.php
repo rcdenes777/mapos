@@ -9,6 +9,33 @@ class Os_model extends CI_Model
         parent::__construct();
     }
 
+    private $bloqueiosOs = [];
+
+    /**
+     * Serializa a requisição inteira: os controladores ainda atualizam estoque
+     * e descontos depois de gravar os itens. O bloqueio fica até o shutdown,
+     * inclusive quando a resposta usa redirect/exit, e é liberado pela conexão
+     * não persistente também em caso de encerramento inesperado.
+     */
+    public function bloquearOs($osId)
+    {
+        if ((int) $osId <= 0) { return false; }
+        $chave = 'mapos_os_' . substr(hash('sha256', $this->db->database), 0, 16) . '_' . (int) $osId;
+        if (isset($this->bloqueiosOs[$chave])) { return true; }
+        $resultado = $this->db->query('SELECT GET_LOCK(?, 5) obtido', [$chave]);
+        if (!$resultado || (int) $resultado->row()->obtido !== 1) { return false; }
+        $this->bloqueiosOs[$chave] = true;
+        $conexao = $this->db;
+        register_shutdown_function(static function () use ($conexao, $chave) {
+            try {
+                if ($conexao->conn_id) { $conexao->query('SELECT RELEASE_LOCK(?)', [$chave]); }
+            } catch (Throwable $e) {
+                log_message('error', 'Falha ao liberar bloqueio de OS; a conexão será encerrada.');
+            }
+        });
+        return true;
+    }
+
     public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array')
     {
         $this->db->select($fields . ',clientes.nomeCliente, clientes.celular as celular_cliente');
