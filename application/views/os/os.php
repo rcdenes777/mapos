@@ -70,6 +70,8 @@
                             <th>Desconto</th>
                             <th>Valor com Desconto</th>
                             <th class="ph4">V.T (Faturado)</th>
+                            <th>Recebido</th>
+                            <th>Saldo</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
@@ -77,7 +79,7 @@
                     <tbody>
                         <?php if (!$results) {
                             echo '<tr>
-                            <td colspan="10">Nenhuma OS Cadastrada</td>
+                            <td colspan="14">Nenhuma OS Cadastrada</td>
                             </tr>';
                         }
 
@@ -160,6 +162,15 @@ foreach ($results as $r) {
     echo '<td>R$ ' . number_format(floatval($r->desconto), 2, ',', '.') . '</td>';
     echo '<td>R$ ' . number_format(floatval($r->valor_desconto), 2, ',', '.') . '</td>';
     echo '<td class="ph4">R$ ' . number_format($r->faturado ? floatval($r->valor_desconto) : 0.00, 2, ',', '.') . '</td>';
+    if ($r->total_recebimentos !== null) {
+        $recebidoCentavos = (int) round((float) $r->recebido_os * 100);
+        $saldoCentavos = (int) round((float) $r->total_recebimentos * 100) - $recebidoCentavos;
+        echo '<td style="white-space:nowrap">R$ ' . number_format($recebidoCentavos / 100, 2, ',', '.') . '</td>';
+        echo '<td style="white-space:nowrap"><a class="badge" style="background-color:' . ($saldoCentavos > 0 ? '#9c4b00' : '#276b37') . ';color:#fff" href="' . site_url('recebimentos/os/' . (int) $r->idOs) . '" title="Consultar recebimentos e saldo">R$ ' . number_format($saldoCentavos / 100, 2, ',', '.') . '</a></td>';
+    } else {
+        $semControle = $r->faturado ? '<a href="' . site_url('recebimentos/os/' . (int) $r->idOs) . '">Conferir</a>' : '—';
+        echo '<td>' . $semControle . '</td><td>' . $semControle . '</td>';
+    }
     echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
     echo '<td>';
 
