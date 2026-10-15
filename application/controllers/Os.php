@@ -246,17 +246,15 @@ class Os extends MY_Controller
             ];
             $os = $this->os_model->getById($this->input->post('idOs'));
 
-            //Verifica para poder fazer a devolução do produto para o estoque caso OS seja cancelada.
-
-            if (strtolower($this->input->post('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {
-                $this->devolucaoEstoque($this->input->post('idOs'));
-            }
-
-            if (strtolower($os->status) == 'cancelado' && strtolower($this->input->post('status')) != 'cancelado') {
-                $this->debitarEstoque($this->input->post('idOs'));
-            }
-
+            // A edição pode ser recusada pelo controle financeiro. Só movimente
+            // o estoque depois de confirmar que a transição foi aceita.
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
+                if (strtolower($data['status']) === 'cancelado' && strtolower($os->status) !== 'cancelado') {
+                    $this->devolucaoEstoque($os->idOs);
+                }
+                if (strtolower($os->status) === 'cancelado' && strtolower($data['status']) !== 'cancelado') {
+                    $this->debitarEstoque($os->idOs);
+                }
                 $this->load->model('mapos_model');
                 $this->load->model('usuarios_model');
 
