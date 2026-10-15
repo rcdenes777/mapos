@@ -34,6 +34,7 @@
     <?php foreach (OsRecebimentos_model::FORMAS as $forma): ?><option><?= html_escape($forma) ?></option><?php endforeach; ?>
     </select><p><button type="submit" class="btn btn-success">Registrar recebimento</button></p></form>
     <?php endif; ?>
+    <p>O total e o cliente ficam protegidos. OS com histórico financeiro não pode ser excluída nem cancelada por alteração de status.</p>
     <h4>Histórico completo</h4>
     <p>Estornar corrige o registro no sistema; não realiza devolução bancária. O histórico é preservado.</p>
     <?php foreach ($recebimentos['historico'] as $item): ?>
