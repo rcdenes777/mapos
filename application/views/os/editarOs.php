@@ -397,17 +397,16 @@ foreach ($servicos as $s) {
                                 <div class="span12 pull-left" id="divAnexos" style="margin-left: 0">
                                     <?php
                                     foreach ($anexos as $a) {
-                                        // Sem miniatura (vídeo, PDF, docx) mostra o ícone genérico,
-                                        // mas o link precisa apontar para o arquivo real.
-                                        if ($a->thumb == null) {
-                                            $thumb = base_url() . 'assets/img/icon-file.png';
-                                        } else {
-                                            $thumb = $a->url . '/thumbs/' . $a->thumb;
-                                        }
                                         $link = $a->url . '/' . $a->anexo;
+                                        if (preg_match('/\.(mp4|mov|webm|ogg|m4v)$/i', $a->anexo)) {
+                                            $miniatura = '<video class="os-video-miniatura" src="' . $link . '#t=0.1" muted playsinline preload="auto" style="width:100%;height:150px;object-fit:contain;pointer-events:none"></video>';
+                                        } else {
+                                            $thumb = $a->thumb ? $a->url . '/thumbs/' . $a->thumb : base_url('assets/img/icon-file.png');
+                                            $miniatura = '<img src="' . $thumb . '" alt="">';
+                                        }
                                         echo '<div class="span3" style="min-height: 150px; margin-left: 0">
                                                     <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal">
-                                                        <img src="' . $thumb . '" alt="">
+                                                        ' . $miniatura . '
                                                     </a>
                                                 </div>';
                                     }
@@ -1451,3 +1450,5 @@ if (!$anotacoes) {
         });
     });
 </script>
+
+<?php $this->load->view('os/miniaturasVideos'); ?>
