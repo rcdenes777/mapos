@@ -152,7 +152,7 @@ class OsRecebimentos_model extends CI_Model
             $this->db->insert('os_financeiro', ['os_id' => $os->idOs, 'total' => self::dinheiro($total),
                 'vencimento' => $vencimento, 'pendente_id' => $pago ? null : $id, 'criado_em' => date('Y-m-d H:i:s')]);
             if ($pago) { $this->registrarHistorico($os->idOs, $total, $data, $forma, $id, $usuario, bin2hex(random_bytes(24))); }
-            $this->db->where('idOs', $os->idOs)->update('os', ['faturado' => 1, 'status' => 'Finalizado',
+            $this->db->where('idOs', $os->idOs)->update('os', ['faturado' => 1,
                 'valorTotal' => self::dinheiro($bruto), 'valor_desconto' => self::dinheiro($total),
                 'lancamento' => $pago ? null : $id]);
         });
