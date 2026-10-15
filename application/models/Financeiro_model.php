@@ -89,6 +89,7 @@ class Financeiro_model extends CI_Model
     public function edit($table, $data, $fieldID, $ID)
     {
         $this->db->where($fieldID, $ID);
+        if ($table === 'lancamentos') { $this->db->where('os_id', null); }
         $this->db->update($table, $data);
 
         if ($this->db->affected_rows() >= 0) {
@@ -101,6 +102,7 @@ class Financeiro_model extends CI_Model
     public function delete($table, $fieldID, $ID)
     {
         $this->db->where($fieldID, $ID);
+        if ($table === 'lancamentos') { $this->db->where('os_id', null); }
         $this->db->delete($table);
         if ($this->db->affected_rows() == '1') {
             return true;

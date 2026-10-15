@@ -205,6 +205,11 @@ class OsController extends REST_Controller
 
     public function index_put($id)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -330,6 +335,11 @@ class OsController extends REST_Controller
 
     public function index_delete($id)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'dOs')) {
             $this->response([
@@ -397,6 +407,11 @@ class OsController extends REST_Controller
 
     public function desconto_post($id)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         if (empty($this->post('desconto', true)) || empty($this->post('valor_desconto', true))) {
             $this->response([
                 'status' => false,
@@ -435,6 +450,11 @@ class OsController extends REST_Controller
 
     public function produtos_post($id)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -505,6 +525,11 @@ class OsController extends REST_Controller
 
     public function produtos_put($id, $idProdutos_os)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -557,6 +582,11 @@ class OsController extends REST_Controller
 
     public function produtos_delete($id, $idProdutos_os)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -607,6 +637,11 @@ class OsController extends REST_Controller
 
     public function servicos_post($id)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -667,6 +702,11 @@ class OsController extends REST_Controller
 
     public function servicos_put($id, $idServicos_os)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([
@@ -712,6 +752,11 @@ class OsController extends REST_Controller
 
     public function servicos_delete($id, $idServicos_os)
     {
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+            $this->response(['status' => false, 'message' => 'OS com controle financeiro: use a tela de recebimentos.'], 409);
+            return;
+        }
+
         $this->logged_user();
         if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
             $this->response([

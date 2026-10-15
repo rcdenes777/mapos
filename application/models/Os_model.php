@@ -149,6 +149,15 @@ class Os_model extends CI_Model
 
     public function edit($table, $data, $fieldID, $ID)
     {
+        if ($table === 'os' && $this->db->get_where('os_financeiro', ['os_id' => (int) $ID])->num_rows()) {
+            $atual = $this->db->get_where('os', ['idOs' => (int) $ID])->row();
+            if (strtolower($data['status'] ?? '') === 'cancelado'
+                || (isset($data['clientes_id']) && (int) $data['clientes_id'] !== (int) $atual->clientes_id)
+                || array_intersect(array_keys($data), ['valorTotal', 'desconto', 'valor_desconto', 'tipo_desconto', 'faturado', 'lancamento'])) {
+                return false;
+            }
+        }
+
         $this->db->where($fieldID, $ID);
         $this->db->update($table, $data);
 

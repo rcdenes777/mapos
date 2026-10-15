@@ -416,6 +416,13 @@ class Financeiro extends MY_Controller
 
     public function editar()
     {
+        $protegido = $this->db->get_where('lancamentos', ['idLancamentos' => (int) $this->input->post('id')])->row();
+        if ($protegido && $protegido->os_id) {
+            $this->session->set_flashdata('error', 'Gerencie este lançamento em Recebimentos da OS para preservar o saldo.');
+            redirect('recebimentos/os/' . (int) $protegido->os_id);
+            return;
+        }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eLancamento')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar lançamentos.');
             redirect(base_url());
@@ -539,6 +546,12 @@ class Financeiro extends MY_Controller
 
     public function excluirLancamento()
     {
+        $protegido = $this->db->get_where('lancamentos', ['idLancamentos' => (int) $this->input->post('id')])->row();
+        if ($protegido && $protegido->os_id) {
+            return $this->output->set_content_type('application/json')->set_status_header(409)
+                ->set_output(json_encode(['result' => false, 'message' => 'Use o estorno em Recebimentos da OS.']));
+        }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'dLancamento')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para excluir lançamentos.');
             redirect(base_url());

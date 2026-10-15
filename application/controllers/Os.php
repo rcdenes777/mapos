@@ -613,6 +613,12 @@ class Os extends MY_Controller
         }
 
         $id = $this->input->post('id');
+        if ($this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()
+            || $this->db->get_where('os_recebimentos', ['os_id' => (int) $id])->num_rows()) {
+            $this->session->set_flashdata('error', 'OS com histórico de recebimentos não pode ser excluída.');
+            redirect('os/visualizar/' . (int) $id);
+            return;
+        }
         $os = $this->os_model->getByIdCobrancas($id);
         if ($os == null) {
             $os = $this->os_model->getById($id);
@@ -736,6 +742,8 @@ class Os extends MY_Controller
 
     public function adicionarProduto()
     {
+        if ($this->financeiroProtegido((int) $this->input->post('idOsProduto'))) { return; }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
             redirect(base_url());
@@ -800,6 +808,9 @@ class Os extends MY_Controller
 
     public function excluirProduto()
     {
+        $itemFinanceiro = $this->db->get_where('produtos_os', ['idProdutos_os' => (int) $this->input->post('idProduto')])->row();
+        if ($itemFinanceiro && $this->financeiroProtegido((int) $itemFinanceiro->os_id)) { return; }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
             redirect(base_url());
@@ -840,6 +851,8 @@ class Os extends MY_Controller
 
     public function adicionarServico()
     {
+        if ($this->financeiroProtegido((int) $this->input->post('idOsServico'))) { return; }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
             redirect(base_url());
@@ -887,6 +900,9 @@ class Os extends MY_Controller
 
     public function excluirServico()
     {
+        $itemFinanceiro = $this->db->get_where('servicos_os', ['idServicos_os' => (int) $this->input->post('idServico')])->row();
+        if ($itemFinanceiro && $this->financeiroProtegido((int) $itemFinanceiro->os_id)) { return; }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
             redirect(base_url());
@@ -1160,6 +1176,8 @@ class Os extends MY_Controller
 
     public function adicionarDesconto()
     {
+        if ($this->financeiroProtegido((int) $this->input->post('idOs'))) { return; }
+
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
             redirect(base_url());
@@ -1207,109 +1225,43 @@ class Os extends MY_Controller
             ->set_output(json_encode(['result' => false, 'messages', 'Ocorreu um erro ao tentar adiciona desconto a OS.']));
     }
 
+    private function financeiroProtegido($osId)
+    {
+        if (!$this->db->get_where('os_financeiro', ['os_id' => (int) $osId])->num_rows()) { return false; }
+        $this->output->set_content_type('application/json')->set_status_header(409)
+            ->set_output(json_encode(['result' => false, 'message' => 'OS com recebimentos: total protegido. Consulte Recebimentos.']));
+        return true;
+    }
+
     public function faturar()
     {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para editar O.S.');
-            redirect(base_url());
+        if ($this->input->method() !== 'post') { show_error('Método não permitido.', 405); return; }
+        foreach (['eOs', 'aLancamento', 'eLancamento'] as $permissao) {
+            if (!$this->permission->checkPermission($this->session->userdata('permissao'), $permissao)) {
+                return $this->output->set_content_type('application/json')->set_status_header(403)
+                    ->set_output(json_encode(['result' => false, 'message' => 'Sem permissão financeira.']));
+            }
         }
-
-        $this->load->library('form_validation');
-        $this->data['custom_error'] = '';
-
-        if ($this->form_validation->run('receita') == false) {
-            $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
-        } else {
-            $vencimento = $this->input->post('vencimento');
-            $recebimento = $this->input->post('recebimento');
-
-            try {
-                $vencimento = DateTime::createFromFormat('d/m/Y', $vencimento)->format('Y-m-d');
-                if ($recebimento != null) {
-                    $recebimento = DateTime::createFromFormat('d/m/Y', $recebimento)->format('Y-m-d');
-                }
-            } catch (Exception $e) {
-                $vencimento = date('Y-m-d');
-            }
-
-            $os_id = $this->input->post('os_id');
-            $valorTotalData = $this->os_model->valorTotalOS($os_id);
-
-            $valorTotalServico = $valorTotalData['totalServico'];
-            $valorTotalProduto = $valorTotalData['totalProdutos'];
-            $valorDesconto = $valorTotalData['valor_desconto'];
-
-            $valorTotal = $valorTotalServico + $valorTotalProduto;
-            $valorTotalComDesconto = $valorTotal - $valorDesconto;
-
-            $data = [
-                'descricao' => set_value('descricao'),
-                'valor' => $valorTotal,
-                'tipo_desconto' => 'real',
-                'desconto' => ($valorDesconto > 0) ? $valorTotalComDesconto : 0,
-                'valor_desconto' => ($valorDesconto > 0) ? $valorDesconto : $valorTotal,
-                'clientes_id' => $this->input->post('clientes_id'),
-                'data_vencimento' => $vencimento,
-                'data_pagamento' => $recebimento,
-                'baixado' => $this->input->post('recebido') ?: 0,
-                'cliente_fornecedor' => set_value('cliente'),
-                'forma_pgto' => $this->input->post('formaPgto'),
-                'tipo' => $this->input->post('tipo'),
-                'observacoes' => set_value('observacoes'),
-                'usuarios_id' => $this->session->userdata('id_admin'),
-            ];
-
-            $this->db->trans_start();
-
-            $editavel = $this->os_model->isEditable($os_id);
-            if (!$editavel) {
-                $this->db->trans_rollback();
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_status_header(400)
-                    ->set_output(json_encode(['result' => false]));
-            }
-
-            if ($this->os_model->add('lancamentos', $data)) {
-                $this->db->set('faturado', 1);
-                $this->db->set('valorTotal', $valorTotal);
-
-                if ($valorDesconto > 0) {
-                    $this->db->set('desconto', $valorTotalComDesconto);
-                    $this->db->set('valor_desconto', $valorDesconto);
-                } else {
-                    $this->db->set('desconto', 0);
-                    $this->db->set('valor_desconto', $valorTotal);
-                }
-
-                $this->db->set('status', 'Faturado');
-                $this->db->where('idOs', $os_id);
-                $this->db->update('os');
-
-                log_info('Faturou uma OS. ID: ' . $os_id);
-
-                $this->db->trans_complete();
-
-                if ($this->db->trans_status() === false) {
-                    $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar faturar OS.');
-                    $json = ['result' => false];
-                } else {
-                    $this->session->set_flashdata('success', 'OS faturada com sucesso!');
-                    $json = ['result' => true];
-                }
-            } else {
-                $this->db->trans_rollback();
-                $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar faturar OS.');
-                $json = ['result' => false];
-            }
-
-            echo json_encode($json);
-            exit();
+        $converterData = static function ($valor) {
+            $data = DateTimeImmutable::createFromFormat('!d/m/Y', (string) $valor);
+            if (!$data || $data->format('d/m/Y') !== $valor) { throw new DomainException('Data inválida.'); }
+            return $data->format('Y-m-d');
+        };
+        try {
+            $this->load->model('OsRecebimentos_model');
+            $pago = $this->input->post('recebido') === '1';
+            $this->OsRecebimentos_model->iniciar((int) $this->input->post('os_id'),
+                $converterData($this->input->post('vencimento')), (int) $this->session->userdata('id_admin'), $pago,
+                $pago ? $converterData($this->input->post('recebimento')) : null, $this->input->post('formaPgto') ?: 'Dinheiro');
+            $this->session->set_flashdata('success', 'OS faturada. Recebimentos e saldo disponíveis na OS.');
+            $dados = ['result' => true];
+        } catch (DomainException $e) {
+            $dados = ['result' => false, 'message' => $e->getMessage()];
+        } catch (Throwable $e) {
+            log_message('error', 'Falha ao iniciar faturamento da OS.');
+            $dados = ['result' => false, 'message' => 'Não foi possível faturar. A operação foi desfeita.'];
         }
-
-        $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar faturar OS.');
-        $json = ['result' => false];
-        echo json_encode($json);
+        return $this->output->set_content_type('application/json')->set_output(json_encode($dados));
     }
 
     private function enviarOsPorEmail($idOs, $remetentes, $assunto)

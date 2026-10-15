@@ -38,6 +38,11 @@ class Cobrancas extends MY_Controller
         } else {
             $id = $this->input->post('id');
             $tipo = $this->input->post('tipo');
+            if ($tipo === 'os' && $this->db->get_where('os_financeiro', ['os_id' => (int) $id])->num_rows()) {
+                return $this->output->set_content_type('application/json')->set_status_header(409)
+                    ->set_output(json_encode(['message' => 'Esta OS usa recebimentos manuais. Consulte Recebimentos para evitar cobrança duplicada.']));
+            }
+
             $formaPagamento = $this->input->post('forma_pagamento');
             $gatewayDePagamento = $this->input->post('gateway_de_pagamento');
 
