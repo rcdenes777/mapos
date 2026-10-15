@@ -7,6 +7,22 @@
 .os-fotos-ampliada img { width: auto !important; height: auto !important; max-width: 94vw; max-height: 90vh; object-fit: contain; }
 .os-fotos-fechar { position: absolute; top: 12px; right: 16px; font-size: 30px; background: #fff; color: #222; border: 0; border-radius: 4px; padding: 8px 12px; cursor: pointer; }
 @media (max-width: 480px) { .table-condensed td .os-fotos-grade img { height: 120px !important; } }
+@media screen and (max-width: 767px) {
+    #printOs { padding: 10px; min-width: 0; }
+    #printOs .invoice-content { padding: 0; }
+    #printOs .invoice-head { overflow: visible; }
+    #printOs table { max-width: 100%; }
+    #printOs .os-dados, #printOs .os-dados tbody, #printOs .os-dados tr, #printOs .os-dados td {
+        display: block; width: auto !important; box-sizing: border-box;
+    }
+    #printOs .os-dados td { overflow-wrap: anywhere; }
+    #printOs .os-dados ul { margin-left: 0; }
+    #printOs .os-tabela-rolagem { max-width: 100%; overflow-x: auto; }
+    #printOs .os-fotos-grade { width: 100%; max-width: 100%; }
+    #printOs .anexo-celula { min-width: 0; }
+    #printOs video { max-width: 100%; }
+    #printOs .os-dados img:not(.os-fotos-grade img) { max-width: 100%; }
+}
 </style>
 <div class="os-fotos-ampliada" hidden role="dialog" aria-modal="true" aria-label="Foto ampliada">
     <button type="button" class="os-fotos-fechar" aria-label="Fechar foto ampliada">&times;</button>
@@ -15,6 +31,16 @@
 <script>
 (function () {
     'use strict';
+    document.querySelectorAll('#printOs table').forEach(function (tabela) {
+        if (!tabela.querySelector('th')) {
+            tabela.classList.add('os-dados');
+        } else {
+            var rolagem = document.createElement('div');
+            rolagem.className = 'os-tabela-rolagem';
+            tabela.parentNode.insertBefore(rolagem, tabela);
+            rolagem.appendChild(tabela);
+        }
+    });
     var modal = document.querySelector('.os-fotos-ampliada');
     var ampliada = modal.querySelector('img');
     var fechar = modal.querySelector('button');
