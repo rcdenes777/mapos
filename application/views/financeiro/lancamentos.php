@@ -32,6 +32,10 @@ $periodo = $this->input->get('periodo');
                 </span>
                 <h5>Lançamentos Financeiros</h5>
     </div>
+    <?php $this->load->view('financeiro/saldosOs'); ?>
+
+    <h4>Movimentações por período</h4>
+    <p>Entradas e despesas individuais. Nas OS, cada pagamento recebido e o saldo pendente aparecem em linhas próprias.</p>
     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aLancamento')) { ?>
         <div class="" style="display:flex">
             <a href="#modalReceita" data-toggle="modal" role="button" class="button btn btn-mini btn-success" style="width: 230px">
@@ -41,6 +45,7 @@ $periodo = $this->input->get('periodo');
 
     <div class="span12" style="margin-left: 0;margin-top: 1rem;">
         <form action="<?php echo current_url(); ?>" method="get">
+            <input type="hidden" name="os_situacao" value="<?= html_escape($saldosOs['situacao']) ?>">
             <div class="span2" style="margin-left: 0">
                 <label>Período</label>
                 <select id="periodo" name="periodo" class="span12">
@@ -76,11 +81,11 @@ $periodo = $this->input->get('periodo');
             </div>
 
             <div class="span2">
-                <label>Status</label>
+                <label>Status do lançamento</label>
                 <select name="status" class="span12">
-                    <option value="">Todos (Pendente e Pago)</option>
+                    <option value="">Todos (Pendente e Recebido/Pago)</option>
                     <option value="0" <?= $this->input->get('status') === '0' ? 'selected' : '' ?>>Pendente</option>
-                    <option value="1" <?= $this->input->get('status') === '1' ? 'selected' : '' ?>>Pago</option>
+                    <option value="1" <?= $this->input->get('status') === '1' ? 'selected' : '' ?>>Recebido/Pago</option>
                 </select>
             </div>
 
@@ -131,9 +136,9 @@ foreach ($results as $r) {
     $vencimento = date(('d/m/Y'), strtotime($r->data_vencimento));
                            
     if ($r->baixado == 0) {
-        $status = 'Pendente';
+        $status = $r->tipo === 'receita' ? 'A receber' : 'A pagar';
     } else {
-        $status = 'Pago';
+        $status = $r->tipo === 'receita' ? 'Recebido' : 'Pago';
     };
     if ($r->tipo == 'receita') {
         $label = 'success';
