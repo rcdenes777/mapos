@@ -22,9 +22,9 @@
 - nginx tem **duas portas**: 8000 interna (uso diário) e **8010 pública**
   (allowlist, só `/publico/*`, escuta em 127.0.0.1) — é a 8010 que o túnel
   exporá. Nada exposto à internet ainda.
-- Antes de qualquer `push`: `docker/.env` é **rastreado e contém as senhas do
-  banco** (anterior à Fase 1, repositório público). Dono decidiu tratar só
-  quando estiver 100% pronto.
+- `docker/.env` é configuração local privada, ignorada pelo Git. Use
+  `docker/.env.example` como modelo sem senhas. Não adicione credenciais aos
+  commits. O histórico remoto antigo ainda contém a configuração anterior.
 
 ## Subir o ambiente
 

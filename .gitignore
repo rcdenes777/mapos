@@ -40,3 +40,6 @@ application/cache/htmlpurifier/
 
 # Backups locais feitos durante manutencao
 *.bak
+
+# Configuração privada dos contêineres; use docker/.env.example como modelo.
+/docker/.env
